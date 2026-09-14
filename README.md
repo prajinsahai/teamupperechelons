@@ -11,17 +11,23 @@ worth, what reserves it needs, how much reinsurance is actually recovering, and 
 
 ## What it does
 
-A one-page Streamlit dashboard, the "AI Actuary":
+Upload the company's data — claims CSV/XLSX, policy and treaty tables, policy wordings as PDF —
+or import tables straight from Supabase, then ask any of six specialist tracks. Each track is a
+role prompt plus its **own deterministic tools** over the loaded data; the model decides which
+tools to call, reads their JSON, and writes the advice. It never computes a figure.
 
-| Section | What you see | Where it comes from |
+| Track | What it answers | Tools (pure Python) |
 |---|---|---|
-| **Portfolio overview** | Portfolio loss · IBNR · Expected reinsurance recovery · Net exposure | Pure-Python actuarial engine (`src/actuarial/`) |
-| **Claims intelligence** | ⚠️ Severity trend vs prior years · ⚠️ Anomalous claims detected · RF-predicted vs historical severity, chart, anomaly table | Two scikit-learn models (`src/ml/`) |
-| **AI Actuary recommendation** | A concise 3-sentence recommendation on reserve adequacy and reinsurance protection | NVIDIA NIM LLM via a tool call that reads the engine + model outputs |
+| **AI Actuary** | Loss forecasting, frequency/severity, reserving, IBNR, pricing, capital, stress tests | Poisson/NB frequency, lognormal severity, LDF IBNR, pure premium, stress scenarios, 1-in-200 capital test |
+| **AI Claims Analyst** | Changing claim patterns, adverse development, drivers, large-loss early indicators | Severity trend + Isolation-Forest anomalies, development pattern, adverse-development z-scores, early large claims, per-line shift |
+| **AI Reinsurance Manager** | Retentions, attachment points, limits, transfer cost, alternative structures | XoL recovery, Monte Carlo gross vs net, TCoR retention sweep, XoL vs aggregate stop-loss, limit sensitivity |
+| **AI Capital Manager** | Capital sufficiency, shortfall probability, cost of retained risk | 99.5% VaR capital test (gross and net), retained-risk economics, loss distribution, stress |
+| **AI Risk Manager** | Exposure movement, concentration, emerging threat signals | Exposure by year/line, HHI concentration, red/amber/green emerging signals, anomalies |
+| **AI Policy Analyst** | Exclusions, deductibles, limits, waiting periods, coverage gaps | Regex clause extraction, keyword search, gap check vs modeled severity/VaR |
 
-The LLM is given exactly one tool, `get_actuarial_summary`, and is instructed to quote its figures
-verbatim. Every number on screen is computed in Python; the model explains, it does not calculate.
-An expander on the page shows the exact JSON the model saw.
+The **Overview** tab is the deterministic dashboard (portfolio loss, IBNR, recovery, net
+exposure, severity trend, anomalies). Every track run is one PRISM session carrying the engine's
+`computed_*` figures as span metadata, so an evaluator can check the narrative against the math.
 
 ## Architecture
 
@@ -55,7 +61,7 @@ pip install -r requirements.txt
 python -m src.data.make_sample_claims   # writes data/claims.csv (illustrative, seeded)
 python -m src.ml.train_models           # trains both models -> models/*.joblib
 
-copy .env.example .env                   # then fill in NVIDIA_API_KEY and PRISMTRACE_*
+copy .env.example .env                   # fill in NVIDIA_API_KEY, PRISMTRACE_*, optional SUPABASE_*
 streamlit run app.py
 ```
 
@@ -70,8 +76,9 @@ reads the engine, the LLM call(s), and the `computed_*` figures as span metadata
 without the UI and check the pipeline:
 
 ```bash
-python -m src.prism.smoke        # one live session from the real app path
-python -m prismtrace.verify      # credential handshake + live-trace doctor
+python -m src.tracks.run all             # every track from the CLI, traced, with a grounding check
+python -m src.data.supabase_import claims policies   # pull tables into data/imported/
+python -m prismtrace.verify              # credential handshake + live-trace doctor
 ```
 
 ## Repository layout

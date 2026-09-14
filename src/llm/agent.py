@@ -1,9 +1,13 @@
-"""One LLM (NVIDIA NIM via langchain-openai) with one tool and a plain manual tool-calling loop.
+"""One LLM (NVIDIA NIM via langchain-openai), a track's tools, and a plain manual tool loop.
 
-No agent framework. The LLM reads engine/ML outputs through `get_actuarial_summary`
-and never computes anything itself (CLAUDE.md Core Rule 1). Every model and tool
-invoke carries the PRISM callback so the whole run is traced.
+No agent framework. The model chooses tools, reads their JSON, and writes the advice;
+it never computes (CLAUDE.md Core Rule 1). The whole loop is ONE LangChain chain so
+PRISM sees a single trace with the model and tool calls nested under it — the caller
+opens the session (src/prism/tracing.py). Child invokes inherit the callbacks from the
+root run; do not pass callbacks again inside, or spans double up.
 """
+
+from __future__ import annotations
 
 import json
 from typing import Any
@@ -15,11 +19,11 @@ from langchain_core.tools import BaseTool, tool
 from src.llm.config import SYSTEM_PROMPT, USER_PROMPT, api_key_available, make_llm  # noqa: F401  (re-exported)
 from src.prism.tracing import callbacks as prism_callbacks
 
-MAX_TOOL_ROUNDS = 5
+MAX_TOOL_ROUNDS = 8
 
 
 def make_summary_tool(summary: dict[str, Any]) -> BaseTool:
-    """Build a tool that exposes the already-computed engine + ML outputs to the LLM."""
+    """Single-tool wrapper used by the overview recommendation and the smoke test."""
 
     @tool
     def get_actuarial_summary() -> str:
@@ -32,21 +36,19 @@ def make_summary_tool(summary: dict[str, Any]) -> BaseTool:
     return get_actuarial_summary
 
 
-def run_recommendation(summary: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    """Run the tool loop and return (recommendation_text, tool_calls_made).
-
-    The whole loop runs as ONE LangChain chain so PRISM sees a single trace with
-    the model and tool calls nested under it (the caller opens the session; see
-    src/prism/tracing.py). Child invokes inherit the callbacks from the parent
-    run automatically — do not pass callbacks again inside, or spans double up.
-    """
-    summary_tool = make_summary_tool(summary)
-    tools_by_name = {summary_tool.name: summary_tool}
-    llm = make_llm().bind_tools(list(tools_by_name.values()))
+def run_agent(
+    system_prompt: str,
+    question: str,
+    tools: list[BaseTool],
+    run_name: str = "ai_actuary_recommendation",
+) -> tuple[str, list[dict[str, Any]]]:
+    """Run the tool loop with the given role/tools. Returns (answer_text, tool_calls_made)."""
+    tools_by_name = {t.name: t for t in tools}
+    llm = make_llm().bind_tools(tools)
 
     @chain
-    def ai_actuary_recommendation(_: Any) -> dict[str, Any]:
-        messages: list[BaseMessage] = [SystemMessage(SYSTEM_PROMPT), HumanMessage(USER_PROMPT)]
+    def _loop(_: Any) -> dict[str, Any]:
+        messages: list[BaseMessage] = [SystemMessage(system_prompt), HumanMessage(question)]
         calls_made: list[dict[str, Any]] = []
         for _round in range(MAX_TOOL_ROUNDS):
             response: AIMessage = llm.invoke(messages)
@@ -55,18 +57,29 @@ def run_recommendation(summary: dict[str, Any]) -> tuple[str, list[dict[str, Any
                 text = _text_of(response)
                 if not text and calls_made:
                     # Seen with NIM reasoning models: budget spent thinking, no text emitted.
-                    # One nudge, same traced run, then give up honestly.
-                    messages.append(HumanMessage("Write the 3-sentence recommendation now, using only the tool figures."))
+                    messages.append(HumanMessage("Write the answer now in the required structure, using only the tool figures."))
                     text = _text_of(llm.invoke(messages))
                 return {"text": text, "tool_calls": calls_made}
             for call in response.tool_calls:
-                result = tools_by_name[call["name"]].invoke(call["args"])
+                t = tools_by_name.get(call["name"])
+                if t is None:
+                    result = json.dumps({"error": f"unknown tool {call['name']}"})
+                else:
+                    try:
+                        result = t.invoke(call["args"])
+                    except Exception as e:  # tool errors go back to the model, not up the stack
+                        result = json.dumps({"error": str(e)})
                 calls_made.append({"name": call["name"], "args": call["args"]})
-                messages.append(ToolMessage(content=result, tool_call_id=call["id"]))
+                messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
         raise RuntimeError("LLM did not finish within the tool-call limit")
 
-    out = ai_actuary_recommendation.invoke({}, config={"callbacks": prism_callbacks()})
+    out = _loop.with_config(run_name=run_name).invoke({}, config={"callbacks": prism_callbacks()})
     return out["text"], out["tool_calls"]
+
+
+def run_recommendation(summary: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
+    """Overview recommendation: the original single-tool flow."""
+    return run_agent(SYSTEM_PROMPT, USER_PROMPT, [make_summary_tool(summary)])
 
 
 def _text_of(msg: AIMessage) -> str:

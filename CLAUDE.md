@@ -28,20 +28,32 @@ Tool-calling loop is a plain manual loop: `llm.bind_tools(tools)` → invoke →
 response has `tool_calls`, run the matching Python function, append a `ToolMessage`,
 repeat until no tool calls. ~20 lines. No agent framework.
 
+## 1b. The six tracks (`src/tracks/registry.py`)
+
+AI Actuary · AI Claims Analyst · AI Reinsurance Manager · AI Capital Manager · AI Risk Manager ·
+AI Policy Analyst. A track = a role system prompt + its own deterministic tools bound to the
+loaded `DataBundle` + a `metadata()` of `computed_*` truth values sent to PRISM. Adding a
+capability means adding a **tool** (pure Python in `src/actuarial/` or `src/policy/`) to a
+track — never a new prompt trick. All tools return JSON dicts with a `method` key.
+
+Data enters only through `src/data/ingest.py` (multi-file CSV/XLSX/PDF -> `DataBundle` with
+column normalisation) or `src/data/supabase_import.py` (tables -> `data/imported/*.csv`).
+
 ## 2. NO heavy infrastructure
 
 Do **not** use, install, or suggest:
 - LangGraph (or any agent-orchestration framework)
 - PostgreSQL, SQLite-as-a-service, or any database server
-- Vector databases (Chroma, FAISS, Pinecone, pgvector, …)
+- Vector databases (Chroma, FAISS, Pinecone, pgvector, …). Supabase is an **import source only**
+  (REST -> CSV); the app never queries it at analysis time.
 - Complex RAG pipelines, embeddings, chunking, rerankers
 - Docker, Redis, Celery, FastAPI backends, auth
 
 Instead:
 - **Data = local CSVs** in `data/`. Read with `pandas`. That's the whole data layer.
 - **Models = local `joblib` files** in `models/`. Train once with `train.py`, load at app start.
-- **Policy wording** (if needed at all) = a small CSV/text file the LLM queries through a
-  simple keyword-lookup tool. No embeddings.
+- **Policy wording** = PDF text extracted with `pypdf`, queried through regex/keyword tools in
+  `src/policy/wording.py`. No embeddings.
 - **State** = Streamlit `st.session_state`. Nothing persists between sessions.
 
 ## 3. Core Rule 1 — the LLM NEVER does actuarial math
@@ -79,13 +91,13 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 
 ## 5. Actuarial engine (`src/actuarial/`) — pure Python
 
-- `frequency.py` — Poisson fit (mean claims/year), trend adjustment.
-- `severity.py` — lognormal fit on historical severities (RF model supplies per-claim
-  predictions; lognormal supplies the distribution for simulation).
-- `development.py` — chain-ladder factors, simple IBNR.
-- `monte_carlo.py` — aggregate annual loss, `numpy.random.default_rng(42)`, N paths.
-- `tcor.py` — `TCoR = premium + retained_losses + deductibles + admin`; retention sweep
-  to find the minimum-TCoR retention.
+- `frequency_severity.py` — Poisson/NB frequency, lognormal severity, pure premium, stress tests.
+- `ibnr.py` — loss-development-factor IBNR per accident year.
+- `development.py` — development pattern, adverse development, large-loss indicators, pattern shift.
+- `capital.py` — Monte Carlo aggregate (seeded, cached), VaR/TVaR, capital adequacy, retained-risk cost.
+- `tcor.py` — TCoR per layer, retention sweep, XoL vs aggregate stop-loss.
+- `exposure.py` — exposure movement, concentration (HHI), emerging signals.
+- `reinsurance.py` — per-occurrence XoL recovery on actual claims.
 - Every function: type hints, docstring, one pytest with a hand-checked expected value.
 - Same CSV in → same answer out. Non-determinism is a monitored failure.
 
@@ -124,6 +136,8 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 .venv/Scripts/python -m src.ml.train            # trains the two models → models/*.joblib
 .venv/Scripts/python -m pytest                  # actuarial + tool tests
 .venv/Scripts/python -m streamlit run app.py    # the demo
+.venv/Scripts/python -m src.tracks.run all      # every track from the CLI, traced, with grounding check
+.venv/Scripts/python -m src.data.supabase_import claims policies   # pull tables to data/imported/
 ```
 
 ## 8. Layout
@@ -172,7 +186,7 @@ tests/
 This project sends traces to PRISM. Env vars: `PRISMTRACE_API_KEY`,
 `PRISMTRACE_PROJECT_ID`, `PRISMTRACE_HOST`.
 
-Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (callbacks on every chat-model and tool invoke), `app.py` (one `analysis_run` session per recommendation), `src/prism/smoke.py` (staging live-trace path)
+Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `app.py` (one `analysis_run` session per track run), `src/tracks/run.py` (CLI track runner), `src/prism/smoke.py` (staging live-trace path)
 
 **Standing rule.** Whenever you add or change an agent, chain, graph, tool,
 retriever, or any entry point that calls a model, wire it to PRISM before you
