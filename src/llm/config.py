@@ -1,7 +1,39 @@
-"""Single source of truth for the LLM model and prompts."""
+"""Single source of truth for the LLM provider, model and prompts.
 
-MODEL = "claude-opus-5"
-MAX_TOKENS = 1024
+Provider: NVIDIA NIM through its OpenAI-compatible endpoint
+(https://integrate.api.nvidia.com/v1). Env: NVIDIA_API_KEY, NVIDIA_BASE_URL,
+optional NVIDIA_MODEL.
+"""
+
+import os
+
+from langchain_core.language_models import BaseChatModel
+
+DEFAULT_MODEL = "meta/muse-glimmer-30b"
+DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
+MAX_TOKENS = 4096  # NIM models spend hidden reasoning tokens; 1024 truncated to empty output
+
+
+def model_name() -> str:
+    return os.environ.get("NVIDIA_MODEL", DEFAULT_MODEL)
+
+
+def api_key_available() -> bool:
+    return bool(os.environ.get("NVIDIA_API_KEY"))
+
+
+def make_llm(temperature: float = 0.1) -> BaseChatModel:
+    """NVIDIA NIM chat model. Imported lazily so the dashboard loads without the key."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=model_name(),
+        api_key=os.environ["NVIDIA_API_KEY"],
+        base_url=os.environ.get("NVIDIA_BASE_URL", DEFAULT_BASE_URL),
+        max_tokens=MAX_TOKENS,
+        temperature=temperature,
+    )
+
 
 SYSTEM_PROMPT = (
     "You are an AI Actuary. Analyze the provided metrics (severity spikes, IBNR, "

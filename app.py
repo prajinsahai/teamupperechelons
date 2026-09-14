@@ -18,8 +18,9 @@ from dotenv import load_dotenv
 from src.actuarial.ibnr import calculate_ibnr
 from src.actuarial.reinsurance import DEFAULT_LIMIT, DEFAULT_RETENTION, calculate_reinsurance_recovery
 from src.llm.agent import api_key_available, run_recommendation
-from src.llm.config import MODEL
+from src.llm.config import model_name
 from src.ml.predict import anomaly_table, get_claims_intelligence
+from src.prism.tracing import analysis_run, build_metadata, new_session_id, tracing_enabled
 
 load_dotenv()
 
@@ -75,8 +76,9 @@ with st.sidebar:
     retention = st.number_input("Retention ($)", min_value=0, value=int(DEFAULT_RETENTION), step=50_000, format="%d")
     limit = st.number_input("Layer limit ($)", min_value=100_000, value=int(DEFAULT_LIMIT), step=250_000, format="%d")
     st.markdown("---")
-    st.caption(f"LLM: `{MODEL}` via langchain-anthropic")
+    st.caption(f"LLM: `{model_name()}` via NVIDIA NIM")
     st.caption("Math: pure Python · ML: scikit-learn (2 models)")
+    st.caption("PRISM tracing: " + ("on" if tracing_enabled() else "off (set PRISMTRACE_* in .env)"))
 
 
 # ---------------------------------------------------------------- header
@@ -168,7 +170,7 @@ st.markdown("---")
 
 # ---------------------------------------------------------------- 3. AI actuary recommendation
 st.subheader("AI Actuary recommendation")
-st.caption("Claude reads the engine and model outputs through a tool call and explains — it never computes a figure itself.")
+st.caption("The LLM reads the engine and model outputs through a tool call and explains — it never computes a figure itself.")
 
 llm_summary = {
     "portfolio_loss": out["portfolio_loss"],
@@ -184,21 +186,27 @@ llm_summary = {
 }
 
 if not api_key_available():
-    st.warning("`ANTHROPIC_API_KEY` is not set. Add it to a `.env` file in the project root to enable the recommendation.")
+    st.warning("`NVIDIA_API_KEY` is not set. Add it to a `.env` file in the project root to enable the recommendation.")
 else:
     if st.button("Generate recommendation", type="primary"):
-        with st.spinner(f"Asking {MODEL}…"):
+        # One PRISM session per analysis run; the engine's computed_* figures ride
+        # along as span metadata so evaluators can check the narrative against them.
+        session_id = new_session_id()
+        with st.spinner(f"Asking {model_name()}…"):
             try:
-                text, calls = run_recommendation(llm_summary)
+                with analysis_run(session_id, build_metadata(out)):
+                    text, calls = run_recommendation(llm_summary)
                 st.session_state["recommendation"] = text
                 st.session_state["tool_calls"] = calls
+                st.session_state["prism_session_id"] = session_id
             except Exception as e:  # surface the real error in the UI during the demo
                 st.error(f"LLM call failed: {e}")
 
     if "recommendation" in st.session_state:
         st.info(st.session_state["recommendation"], icon="📐")
         calls = st.session_state.get("tool_calls", [])
-        st.caption(f"Tool calls made: {', '.join(c['name'] for c in calls) or 'none'}")
+        trace_note = f" · PRISM session `{st.session_state['prism_session_id']}`" if tracing_enabled() else ""
+        st.caption(f"Tool calls made: {', '.join(c['name'] for c in calls) or 'none'}{trace_note}")
 
 with st.expander("What the AI can see (tool output)"):
     st.json(llm_summary, expanded=False)

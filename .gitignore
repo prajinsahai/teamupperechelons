@@ -1,7 +1,5 @@
-.venv/
-.env
+﻿.env
 __pycache__/
 *.pyc
-.pytest_cache/
-models/*.joblib
-.claude/
+venv/
+.venv/

@@ -2,6 +2,8 @@ streamlit
 pandas
 numpy
 scikit-learn
-langchain-anthropic
+langchain
+langchain-openai
 python-dotenv
 matplotlib
+prismtrace-sdk>=0.4.3

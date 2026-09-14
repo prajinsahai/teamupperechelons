@@ -18,10 +18,11 @@ Team: Prajin Sahai S (lead), Jyotiraditya Barik, Archit Anand.
 | Frontend | **Streamlit** | Single `app.py`. Upload CSV → run → show recommendation + charts. |
 | ML | **Scikit-learn** | Exactly two models (see §4). Saved/loaded as `.joblib`. |
 | Actuarial math | **Pure Python** (`numpy`/`pandas` allowed) | Deterministic, seeded, unit-tested functions. |
-| Reasoning | **One LLM — Claude via Anthropic API** (`langchain-anthropic` `ChatAnthropic`) | Tool calling only. Explains and reasons; never computes. |
+| Reasoning | **One LLM — NVIDIA NIM** (OpenAI-compatible endpoint via `langchain-openai` `ChatOpenAI`) | Tool calling only. Explains and reasons; never computes. |
 | Charts | **matplotlib** | Rendered into Streamlit with `st.pyplot`. |
 
-Model: `claude-opus-5`. One constant in `src/llm/config.py` — nowhere else.
+Model: `meta/muse-glimmer-30b` (override with `NVIDIA_MODEL`). Provider + model live only in
+`src/llm/config.py` (`make_llm()`); nothing else imports a chat-model class.
 
 Tool-calling loop is a plain manual loop: `llm.bind_tools(tools)` → invoke → if the
 response has `tool_calls`, run the matching Python function, append a `ToolMessage`,
@@ -49,9 +50,9 @@ The LLM must never add, multiply, average, fit, simulate, or estimate a number i
 Every figure it reports must come from a Python tool call and be quoted verbatim.
 
 - All calculations live in `src/actuarial/` and `src/ml/` as Python functions.
-- Each is exposed to Claude as a tool (`@tool` from `langchain_core.tools`) that returns
+- Each is exposed to the LLM as a tool (`@tool` from `langchain_core.tools`) that returns
   structured JSON: `{"value": ..., "unit": ..., "inputs": {...}, "method": "..."}`.
-- The system prompt states this rule explicitly and instructs Claude to call a tool for
+- The system prompt states this rule explicitly and instructs the LLM to call a tool for
   any quantity, and to say "I need to compute that" rather than guess.
 - The explanation prompt receives the engine output as structured data and is told to
   quote figures exactly as given.
@@ -90,10 +91,12 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 
 ## 6. PRISM integration (`src/prism/`)
 
-- Instrument via the PRISM **Python SDK callback handler** passed to `ChatAnthropic`
-  invocations (`config={"callbacks": [handler]}`).
-- `agent_id = "ai-actuary"`. One stable `session_id` per analysis run, set at run start
-  (cannot be backfilled). Call `handler.flush()` before the run ends.
+- Instrument via `prismtrace.PRISMtraceCallbackHandler` (`pip install "prismtrace-sdk>=0.4.3"`),
+  built once per process in `src/prism/tracing.py` and passed as
+  `config={"callbacks": callbacks()}` on every chat-model / tool invoke.
+- `agent_name = "ai-actuary"`. One `prismtrace.session(...)` per analysis run via
+  `analysis_run(session_id, metadata)`; it flushes on exit. Never build a handler per request.
+- Staging live-trace path: `python -m src.prism.smoke`. Verify: `python -m prismtrace.verify`.
 - Attach the engine's computed figures as trace metadata so evaluators can compare
   narrative vs truth:
   `computed_expected_loss`, `computed_optimal_retention`, `claim_count`, `data_years`,
@@ -108,7 +111,8 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 
 - Python 3.12, venv at `.venv/` (Windows: `.\.venv\Scripts\Activate.ps1`).
 - Always run through `.venv/Scripts/python`.
-- `.env` (never commit): `ANTHROPIC_API_KEY`, `PRISM_API_KEY`. Loaded with `python-dotenv`.
+- `.env` (never commit): `NVIDIA_API_KEY`, `NVIDIA_BASE_URL`, `PRISMTRACE_API_KEY`, `PRISMTRACE_PROJECT_ID`,
+  `PRISMTRACE_HOST`. Loaded with `python-dotenv`. Key names only in `.env.example`.
 
 ```bash
 .venv/Scripts/python -m pip install -r requirements.txt
@@ -127,9 +131,9 @@ src/
     train.py          trains RF severity + IsolationForest → models/
     predict.py        loads .joblib, exposes predict_severity(), flag_anomalies()
   llm/
-    config.py         MODEL = "claude-opus-5", system prompt
+    config.py         make_llm() (NVIDIA NIM), model name, system prompt
     tools.py          @tool wrappers around actuarial/ and ml/ functions
-    agent.py          ChatAnthropic + bind_tools + manual tool loop
+    agent.py          make_llm() + bind_tools + manual tool loop
   prism/
     tracing.py        handler setup, session_id, metadata builder, flush
 data/
@@ -153,7 +157,19 @@ tests/
 
 1. `data/claims.csv` + `train.py` → two `.joblib` files exist.
 2. `src/actuarial/` functions + tests pass.
-3. `tools.py` + `agent.py` → Claude answers "what's our expected annual loss?" via a tool call.
+3. `tools.py` + `agent.py` → the LLM answers "what's our expected annual loss?" via a tool call.
 4. `app.py` → upload CSV, click Run, see recommendation table + matplotlib chart + anomalies.
 5. PRISM handler wired, metadata attached, one trace visible in the PRISM dashboard.
 6. One detected failure → prompt fix → re-run cohort → before/after delta on a slide.
+
+## PRISM tracing (do not remove)
+
+This project sends traces to PRISM. Env vars: `PRISMTRACE_API_KEY`,
+`PRISMTRACE_PROJECT_ID`, `PRISMTRACE_HOST`.
+
+Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (callbacks on every chat-model and tool invoke), `app.py` (one `analysis_run` session per recommendation), `src/prism/smoke.py` (staging live-trace path)
+
+**Standing rule.** Whenever you add or change an agent, chain, graph, tool,
+retriever, or any entry point that calls a model, wire it to PRISM before you
+finish. Unwired code is invisible in the dashboard. If you are unsure whether
+something is covered, assume it is not and wire it.
