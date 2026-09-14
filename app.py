@@ -196,7 +196,16 @@ def render_track(track_key: str) -> None:
     if not api_key_available():
         st.warning("`NVIDIA_API_KEY` is not set in `.env`."); return
 
-    question = st.text_area("Question", value=track.default_question, key=f"q_{track_key}", height=70)
+    q_key = f"q_{track_key}"
+    if q_key not in st.session_state:
+        st.session_state[q_key] = track.default_question
+
+    def _pick(k: str = track_key) -> None:
+        st.session_state[f"q_{k}"] = st.session_state[f"pick_{k}"]
+
+    st.selectbox("Example questions", track.example_questions, key=f"pick_{track_key}", on_change=_pick,
+                 help="Pick one, or edit the question below — anything in this track's remit works.")
+    question = st.text_area("Question", key=q_key, height=70)
     state_key = f"result_{track_key}"
     if st.button(f"Run {track.name}", type="primary", key=f"run_{track_key}"):
         session_id = new_session_id(track_key)

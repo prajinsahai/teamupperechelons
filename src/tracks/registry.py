@@ -47,6 +47,7 @@ class Track:
     blurb: str
     system_prompt: str
     default_question: str
+    example_questions: list[str]
     build_tools: Callable[[DataBundle, dict[str, Any]], list[BaseTool]]
     metadata: Callable[[DataBundle, dict[str, Any]], dict[str, Any]]
     needs: str = "claims"  # "claims" | "documents"
@@ -326,6 +327,14 @@ TRACKS: dict[str, Track] = {
         "You are the AI Actuary for a corporate insurance programme. You forecast losses, fit frequency and severity, "
         "assess reserves and IBNR, indicate pricing, and run stress tests." + COMMON_RULES,
         "Are our reserves adequate, what is the expected annual loss, and what would we charge for this risk?",
+        [
+            "Are our reserves adequate, what is the expected annual loss, and what would we charge for this risk?",
+            "What is our expected annual loss and how confident should we be in it given the data we have?",
+            "Is the IBNR reserve sufficient? Which accident years are still immature and drive it?",
+            "How heavy is our severity tail, and what does that mean for pricing and reinsurance?",
+            "What premium should we charge next year, and how does it move under a 25% frequency stress?",
+            "Do we hold enough capital for a 1-in-200 year, and how much surplus or deficit is there?",
+        ],
         _actuary_tools, _actuary_meta),
     "claims": Track(
         "claims", "AI Claims Analyst",
@@ -333,6 +342,14 @@ TRACKS: dict[str, Track] = {
         "You are the AI Claims Analyst. You find changing claim patterns, adverse development, their drivers, "
         "and early indicators of large-loss risk in the claims book." + COMMON_RULES,
         "What is changing in our claims experience and where is large-loss risk emerging?",
+        [
+            "What is changing in our claims experience and where is large-loss risk emerging?",
+            "Which line of business is driving the severity increase this year, and by how much?",
+            "Are any accident years showing adverse reserve development? Which ones and why?",
+            "Which open claims look most likely to become large losses, and what should we review first?",
+            "Which claims are anomalous and what do they have in common?",
+            "Is the shift in claims frequency, severity, or both — and is it broad-based or concentrated?",
+        ],
         _claims_tools, _claims_meta),
     "reinsurance": Track(
         "reinsurance", "AI Reinsurance Manager",
@@ -340,6 +357,14 @@ TRACKS: dict[str, Track] = {
         "You are the AI Reinsurance Manager. You model retentions, attachment points, limits, transfer cost and "
         "alternative programme structures, and recommend the structure that minimises Total Cost of Risk." + COMMON_RULES,
         "Is our current retention and limit right, and would a different structure be cheaper?",
+        [
+            "Is our current retention and limit right, and would a different structure be cheaper?",
+            "What retention minimises our Total Cost of Risk, and how much would we save versus today?",
+            "How much of our loss actually gets recovered under the current layer, and how many claims exhaust it?",
+            "Would an aggregate stop-loss protect us better than the per-occurrence excess-of-loss?",
+            "If we halved or doubled the limit, what happens to premium, retained loss and TCoR?",
+            "What is our net 1-in-100 and 1-in-200 loss after reinsurance, and is the tail adequately transferred?",
+        ],
         _reins_tools, _reins_meta),
     "capital": Track(
         "capital", "AI Capital Manager",
@@ -347,6 +372,14 @@ TRACKS: dict[str, Track] = {
         "You are the AI Capital Manager. You evaluate capital sufficiency at a 1-in-200 standard, shortfall "
         "probability, and the financial effect of retained risk, gross and net of reinsurance." + COMMON_RULES,
         "Is our capital sufficient for the retained risk, and what is retained risk costing us?",
+        [
+            "Is our capital sufficient for the retained risk, and what is retained risk costing us?",
+            "What is the probability we exceed our capital in a year, and how big is the shortfall if we do?",
+            "How much capital do we need at the 99.5% level, gross versus net of reinsurance?",
+            "What is the annual cost of the risk we retain, including the capital that backs it?",
+            "How much solvency protection is the reinsurance treaty actually buying us?",
+            "Under a severity +30% or catastrophe scenario, does our capital still hold?",
+        ],
         _capital_tools, _capital_meta),
     "risk": Track(
         "risk", "AI Risk Manager",
@@ -354,6 +387,14 @@ TRACKS: dict[str, Track] = {
         "You are the AI Risk Manager. You monitor exposure movement, concentration and emerging threat signals "
         "across lines of business and flag what needs attention now." + COMMON_RULES,
         "Where is exposure moving, where are we concentrated, and which lines show emerging risk?",
+        [
+            "Where is exposure moving, where are we concentrated, and which lines show emerging risk?",
+            "Which lines of business are red or amber on emerging frequency or severity, and what changed?",
+            "How concentrated is our loss in one line or a few large claims, and is that a problem?",
+            "How has exposure moved year over year, and is loss growing faster than exposure?",
+            "What are the top five claims and what share of total loss do they represent?",
+            "Which risks would hurt us most under a combined frequency and severity stress?",
+        ],
         _risk_tools, _risk_meta),
     "policy": Track(
         "policy", "AI Policy Analyst",
@@ -361,5 +402,13 @@ TRACKS: dict[str, Track] = {
         "You are the AI Policy Analyst. You read policy wordings, endorsements, exclusions, deductibles and limits, "
         "and surface coverage gaps against the modeled exposure." + COMMON_RULES,
         "What does this policy exclude or limit, and where are the coverage gaps against our exposure?",
+        [
+            "What does this policy exclude or limit, and where are the coverage gaps against our exposure?",
+            "What are the exclusions in this wording, and which of them matter for our loss history?",
+            "What are the deductibles, waiting periods and sub-limits, and do they leave us under-covered?",
+            "Is the stated limit of liability enough for our modelled 1-in-200 loss or our largest claim?",
+            "What conditions or notification requirements could void a claim, and are we meeting them?",
+            "Does the policy cover cyber, contingent business interruption or supplier failure?",
+        ],
         _policy_tools, _policy_meta, needs="documents"),
 }
