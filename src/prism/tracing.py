@@ -20,6 +20,7 @@ from __future__ import annotations
 import atexit
 import contextvars
 import os
+import threading
 import uuid
 from contextlib import contextmanager
 from typing import Any, Iterator, Optional
@@ -32,17 +33,34 @@ AGENT_NAME = "ai-actuary"
 _run_metadata: contextvars.ContextVar[dict[str, Any]] = contextvars.ContextVar(
     "ai_actuary_run_metadata", default={}
 )
+# True while a caller wants flushes to block (CLI scripts that exit right after; tests).
+_blocking_flush: contextvars.ContextVar[bool] = contextvars.ContextVar("ai_actuary_blocking_flush", default=False)
 _handler: Optional["ActuaryTraceHandler"] = None
 
 
 class ActuaryTraceHandler(PRISMtraceCallbackHandler):
-    """Stock handler + ambient per-run metadata on every span."""
+    """Stock handler + ambient per-run metadata on every span + non-blocking flush.
+
+    The stock handler POSTs a run synchronously inside the LangChain callback the
+    moment its root chain ends. PRISM's ingest can take >10s to answer, which
+    stalled the UI for the whole timeout after the model had already replied.
+    Sending from a thread keeps the app responsive; the SDK's own lock guards
+    the run state.
+    """
 
     def _start_span(self, name: str, span_type: str, run_id: str, *args: Any, **kwargs: Any) -> None:
         ambient = _run_metadata.get()
         if ambient:
             kwargs["metadata"] = {**ambient, **(kwargs.get("metadata") or {})}
         super()._start_span(name, span_type, run_id, *args, **kwargs)
+
+    def _flush_run(self, root_id: str, discard: bool = False) -> bool:
+        if _blocking_flush.get():
+            return super()._flush_run(root_id, discard)
+        threading.Thread(
+            target=super()._flush_run, args=(root_id, discard), name="prism-flush", daemon=True
+        ).start()
+        return True
 
 
 def tracing_enabled() -> bool:
@@ -90,14 +108,20 @@ def build_metadata(engine_output: dict[str, Any]) -> dict[str, Any]:
 
 
 @contextmanager
-def analysis_run(session_id: str, metadata: dict[str, Any]) -> Iterator[str]:
-    """Group everything inside under one PRISM session, with computed_* metadata on each span."""
+def analysis_run(session_id: str, metadata: dict[str, Any], *, blocking: bool = False) -> Iterator[str]:
+    """Group everything inside under one PRISM session, with computed_* metadata on each span.
+
+    blocking=True makes every flush wait for PRISM's response (use in scripts that
+    exit immediately afterwards, so daemon threads are not killed mid-send).
+    """
     token = _run_metadata.set(dict(metadata))
+    btoken = _blocking_flush.set(blocking)
     try:
         with prismtrace.session(session_id) as sid:
             yield sid
     finally:
-        _run_metadata.reset(token)
         h = get_handler()
         if h:
-            h.flush()  # the run is complete; send it now rather than at exit
+            h.flush()  # anything still buffered for this run
+        _blocking_flush.reset(btoken)
+        _run_metadata.reset(token)

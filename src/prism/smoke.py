@@ -51,7 +51,7 @@ def main() -> int:
     handler = get_handler()
     print(f"PRISM host: {handler.endpoint}  project: {handler.project_id}  session: {session_id}")
 
-    with analysis_run(session_id, build_metadata(out)):
+    with analysis_run(session_id, build_metadata(out), blocking=True):  # script exits right after
         # Real app tool, real LangChain invoke, PRISM callback attached.
         tool = make_summary_tool(summary)
         result = tool.invoke({}, config={"callbacks": callbacks()})

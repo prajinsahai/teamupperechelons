@@ -96,6 +96,11 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
   `config={"callbacks": callbacks()}` on every chat-model / tool invoke.
 - `agent_name = "ai-actuary"`. One `prismtrace.session(...)` per analysis run via
   `analysis_run(session_id, metadata)`; it flushes on exit. Never build a handler per request.
+- Run the whole agent loop as ONE `@chain` (see `run_recommendation`) and pass callbacks only
+  on that root invoke — child model/tool calls inherit them. One root = one trace with nested
+  spans and one flush. Passing callbacks again inside the chain double-counts spans.
+- Flushes are non-blocking (thread) so a slow PRISM ingest never stalls the UI. Scripts that
+  exit right away must use `analysis_run(..., blocking=True)`.
 - Staging live-trace path: `python -m src.prism.smoke`. Verify: `python -m prismtrace.verify`.
 - Attach the engine's computed figures as trace metadata so evaluators can compare
   narrative vs truth:

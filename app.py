@@ -154,7 +154,7 @@ with g1:
     ax.set_title("Mean claim severity by accident year", fontsize=11, loc="left")
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", alpha=0.25)
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig, width="stretch")
     plt.close(fig)
 with g2:
     st.markdown("**Top anomalous claims** (Isolation Forest)")
