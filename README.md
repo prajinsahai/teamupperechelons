@@ -98,6 +98,20 @@ python -m src.data.supabase_import claims policies   # pull tables into data/imp
 python -m prismtrace.verify              # credential handshake + live-trace doctor
 ```
 
+### Tests and the replay cohort
+
+```bash
+python -m pytest                                   # 48 tests, no API key: engine hand-checks, tool JSON contract, parsers, grounding
+python -m tests.cohort.freeze --check              # the deterministic engine must match the golden snapshots byte for byte
+python -m tests.cohort.replay --tag baseline --repeat 2   # 16 fixed questions x 4 businesses through the Core, each a PRISM session
+python -m tests.cohort.compare baseline fix1       # before/after table: grounding, routing, parse, timeouts, determinism, latency
+```
+
+Every sub-agent's spans carry its own `computed_*` truth values, the synthesizer span carries the
+union, and the executive summary is checked mechanically against every tool result (unit-aware:
+`$43.4M` is grounded by `43414189.96`). Sub-agents run under a 180 s budget; a hung model call
+yields a timeout report and synthesis proceeds on what arrived.
+
 ## Repository layout
 
 ```

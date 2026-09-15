@@ -12,7 +12,7 @@ import time
 
 from dotenv import load_dotenv
 
-from src.core.orchestrator import core_metadata, grounding_check, run_core
+from src.core.orchestrator import run_core
 from src.data.ingest import bundle_from_paths
 from src.data.samples import list_samples, sample_files
 from src.prism.tracing import analysis_run, new_session_id
@@ -43,16 +43,17 @@ def main() -> int:
 
     with analysis_run(session_id, {"mode": "auto", "question": args.question[:200]}, blocking=True):
         res = run_core(args.question, bundle, params, session_id, on_update=on_update, use_llm_router=not args.keyword_router)
-    res.metadata = core_metadata(bundle, params, res.route.active)
 
     print(f"\nROUTE ({res.route.source}): {[TRACKS[k].name for k in res.route.active]} — {res.route.objective}")
     if res.route.error:
         print("  note:", res.route.error)
     for k, r in res.reports.items():
-        print(f"\n--- {r.name} ({r.seconds:.0f}s, tools {r.tool_calls}){' ERROR: ' + r.error if r.error else ''}\n{r.text[:1200]}")
+        print(f"\n--- {r.name} ({r.seconds:.0f}s, tools {r.tool_names}){' ERROR: ' + r.error if r.error else ''}\n{r.text[:1200]}")
     syn = res.synthesis
-    g = grounding_check(syn.get("executive_summary", ""), res.reports)
-    print(f"\n=== EXECUTIVE SUMMARY (parse={syn.get('_parse')}, grounding {'OK' if g['grounded'] else 'CHECK ' + str(g['ungrounded'])}, {g['numbers']} numbers)")
+    g = res.grounding()
+    print(f"\n=== EXECUTIVE SUMMARY (parse={syn.get('_parse')}, grounding {g['rate']}% of {g['checked']} figures{', ungrounded ' + str(g['ungrounded']) if g['ungrounded'] else ''})")
+    if res.timed_out:
+        print("timed out:", res.timed_out)
     print(syn.get("executive_summary", ""))
     print("\nfriction:", syn.get("strategic_risk_friction"))
     print("key figures:", json.dumps(syn.get("key_figures", {}), indent=1)[:800])

@@ -14,25 +14,12 @@ import time
 from dotenv import load_dotenv
 
 from src.data.ingest import bundle_from_paths
+from src.eval.grounding import grounding
 from src.llm.agent import run_agent
 from src.prism.tracing import analysis_run, new_session_id
 from src.tracks.registry import TRACKS
 
 DEFAULT_FILES = ["data/claims.csv", "data/sample_policy.txt"]
-
-
-def grounding_check(text: str, tool_outputs: list[str]) -> dict:
-    """Mechanical hallucination check: every number in the answer must appear in some tool output."""
-    haystack = " ".join(tool_outputs).replace(",", "")
-    nums = re.findall(r"\d[\d,]*\.?\d*", text)
-    missing = []
-    for n in nums:
-        clean = n.replace(",", "").rstrip(".")
-        if not clean or clean in ("1", "2", "3", "4", "5", "1.0", "200"):  # bullets / trivial
-            continue
-        if clean not in haystack:
-            missing.append(n)
-    return {"numbers": len(nums), "ungrounded": missing, "grounded": not missing}
 
 
 def main() -> int:
@@ -57,19 +44,12 @@ def main() -> int:
         t0 = time.time()
         tools = track.build_tools(bundle, params)
         meta = {"track": key, **track.metadata(bundle, params)}
-        outputs: list[str] = []
-        # wrap tools to capture outputs for the grounding check
-        for t in tools:
-            orig = t.func
-            def _wrapped(*a, _orig=orig, **k):
-                r = _orig(*a, **k); outputs.append(str(r)); return r
-            t.func = _wrapped
         with analysis_run(session_id, meta, blocking=True):
             text, calls = run_agent(track.system_prompt, args.question or track.default_question, tools, run_name=f"{key}_track")
-        g = grounding_check(text, outputs)
+        g = grounding(text, calls)
         print(f"\n=== {track.name}  ({time.time()-t0:.0f}s, session {session_id})")
         print("tools:", [c["name"] for c in calls])
-        print("grounding:", "OK" if g["grounded"] else f"UNGROUNDED {g['ungrounded']}", f"({g['numbers']} numbers)")
+        print(f"grounding: {g['rate']}% of {g['checked']} figures", f"UNGROUNDED {g['ungrounded']}" if g["ungrounded"] else "OK")
         print(text)
     return 0
 

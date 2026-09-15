@@ -1,0 +1,21 @@
+[
+  {"id": "vel_full", "business": "velocity", "question": "Give me a full risk assessment of this business.", "expected_agents": ["actuary"]},
+  {"id": "vel_reserves_capital", "business": "velocity", "question": "Are our reserves adequate and is our capital position solvent?", "expected_agents": ["actuary", "capital"]},
+  {"id": "vel_reinsurance", "business": "velocity", "question": "Is our reinsurance layer worth what we pay for it given how small our claims are?", "expected_agents": ["actuary", "reinsurance"]},
+  {"id": "vel_leakage", "business": "velocity", "question": "Where is claims leakage or fraud costing us, and how much?", "expected_agents": ["actuary", "claims"]},
+
+  {"id": "nex_full", "business": "nexus", "question": "Give me a full risk assessment of this business.", "expected_agents": ["actuary"]},
+  {"id": "nex_reserves_capital", "business": "nexus", "question": "Are our reserves adequate and is our capital position solvent?", "expected_agents": ["actuary", "capital"]},
+  {"id": "nex_reinsurance", "business": "nexus", "question": "Is our reinsurance programme right for the cyber catastrophe tail we carry, and what would it cost to change it?", "expected_agents": ["actuary", "reinsurance"]},
+  {"id": "nex_cat_policy", "business": "nexus", "question": "What happens to us in a catastrophe year, and does the policy actually pay?", "expected_agents": ["actuary", "policy"]},
+
+  {"id": "aeg_full", "business": "aegis", "question": "Give me a full risk assessment of this business.", "expected_agents": ["actuary"]},
+  {"id": "aeg_reserves_capital", "business": "aegis", "question": "Are our reserves adequate given the long tail, and is our capital position solvent?", "expected_agents": ["actuary", "capital"]},
+  {"id": "aeg_reinsurance", "business": "aegis", "question": "Is our retention and limit right for medical malpractice, and would a different structure be cheaper?", "expected_agents": ["actuary", "reinsurance"]},
+  {"id": "aeg_deteriorating", "business": "aegis", "question": "Which lines are deteriorating and what should we do about them this quarter?", "expected_agents": ["actuary", "claims"]},
+
+  {"id": "ter_full", "business": "terrafirma", "question": "Give me a full risk assessment of this business.", "expected_agents": ["actuary"]},
+  {"id": "ter_reserves_capital", "business": "terrafirma", "question": "Do we hold enough capital for a weather catastrophe year?", "expected_agents": ["actuary", "capital"]},
+  {"id": "ter_reinsurance", "business": "terrafirma", "question": "Is our reinsurance programme right for the weather volatility we carry?", "expected_agents": ["actuary", "reinsurance"]},
+  {"id": "ter_deteriorating", "business": "terrafirma", "question": "Which lines are deteriorating and where is exposure moving?", "expected_agents": ["actuary", "risk"]}
+]

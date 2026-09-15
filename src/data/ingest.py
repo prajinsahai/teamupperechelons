@@ -34,6 +34,16 @@ CLAIMS_SYNONYMS: dict[str, list[str]] = {
 }
 
 REQUIRED_FOR_ENGINE = ["accident_year", "claim_amount"]
+RISK_CLASS_VALUES = ("A", "B", "C", "D")
+
+
+def content_hash(df: pd.DataFrame) -> str:
+    """Stable identity of a claims frame's content (not its object id). Stamped on
+    `df.attrs["content_hash"]` by build_bundle so engine caches key on it for free."""
+    import hashlib
+
+    h = pd.util.hash_pandas_object(df, index=False).values.tobytes()
+    return hashlib.sha256(h).hexdigest()[:16]
 
 
 def _norm(name: str) -> str:
@@ -83,11 +93,24 @@ def normalise_claims(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str], li
             out[c] = default; notes.append(f"{c} := {default} (assumed, column missing)")
     if "risk_class" not in out:
         out["risk_class"] = "B"; notes.append("risk_class := B (assumed)")
+    else:
+        # the severity model only knows A-D; map what we can, default the rest, and say so
+        rc = out["risk_class"].astype(str).str.strip().str.upper()
+        rc = rc.replace({"1": "A", "2": "B", "3": "C", "4": "D", "LOW": "A", "MEDIUM": "B", "MED": "B", "HIGH": "C", "VERY HIGH": "D", "SEVERE": "D"})
+        bad = ~rc.isin(list(RISK_CLASS_VALUES))
+        if bad.any():
+            notes.append(f"risk_class: {int(bad.sum())} value(s) outside A-D mapped to B (e.g. {sorted(out.loc[bad, 'risk_class'].astype(str).unique())[:4]})")
+            rc = rc.where(~bad, "B")
+        out["risk_class"] = rc
 
     for c in ("accident_year", "claim_amount", "reported_amount", "paid_amount", "reserve", "development_month", "exposure", "deductible", "coverage_limit", "previous_claims"):
         if c in out:
             out[c] = pd.to_numeric(out[c], errors="coerce")
     out = out.dropna(subset=[c for c in REQUIRED_FOR_ENGINE if c in out])
+    nonpos = out["claim_amount"] <= 0
+    if nonpos.any():
+        notes.append(f"{int(nonpos.sum())} row(s) with claim_amount <= 0 dropped")
+        out = out.loc[~nonpos]
     out["accident_year"] = out["accident_year"].astype(int)
     return out, mapping, notes
 
@@ -176,6 +199,7 @@ def build_bundle(files: list[tuple[str, bytes]]) -> DataBundle:
         b.claims = pd.concat(claim_frames, ignore_index=True)
         if len(claim_frames) > 1:
             b.notes.append(f"{len(claim_frames)} claims files concatenated")
+        b.claims.attrs["content_hash"] = content_hash(b.claims)
     return b
 
 

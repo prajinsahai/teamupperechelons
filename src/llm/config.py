@@ -36,8 +36,8 @@ def make_llm(temperature: float = 0.1, model: str | None = None, max_tokens: int
         base_url=os.environ.get("NVIDIA_BASE_URL", DEFAULT_BASE_URL),
         max_tokens=max_tokens or MAX_TOKENS,
         temperature=temperature,
-        timeout=600,  # tool-heavy turns under 4-way concurrency exceeded 180s
-        max_retries=2,
+        timeout=240,  # tool-heavy turns under 4-way concurrency exceeded 180s; 600 froze the UI on a hang
+        max_retries=1,  # never retry a 4-minute call on stage
     )
 
 

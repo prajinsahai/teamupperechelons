@@ -25,7 +25,7 @@ from src.actuarial.frequency_severity import fit_frequency, fit_severity, stress
 from src.actuarial.ibnr import calculate_ibnr
 from src.actuarial.reinsurance import calculate_reinsurance_recovery
 from src.charts import figures as F
-from src.core.orchestrator import CoreResult, core_metadata, grounding_check, run_core
+from src.core.orchestrator import CoreResult, run_core
 from src.data.ingest import DataBundle, build_bundle, bundle_from_paths
 from src.data.samples import list_samples, sample_files
 from src.llm.agent import api_key_available, run_agent
@@ -78,8 +78,14 @@ def _bundle_from_uploads(files: tuple[tuple[str, bytes], ...]) -> DataBundle:
 
 
 @st.cache_data(show_spinner=False)
-def _bundle_from_disk(paths: tuple[str, ...]) -> DataBundle:
+def _bundle_from_disk_v(paths: tuple[str, ...], _stamps: tuple[tuple[float, int], ...]) -> DataBundle:
     return bundle_from_paths(list(paths))
+
+
+def _bundle_from_disk(paths: tuple[str, ...]) -> DataBundle:
+    """Cache keyed on (path, mtime, size) so a Supabase re-import to the same file is picked up."""
+    stamps = tuple((Path(p).stat().st_mtime, Path(p).stat().st_size) for p in paths)
+    return _bundle_from_disk_v(paths, stamps)
 
 
 @st.cache_data(show_spinner=False)
@@ -239,8 +245,7 @@ if auto:
     statuses = {k: "idle" for k in TRACKS}
     prev: CoreResult | None = st.session_state.get("core_result")
     if prev is not None and not run:
-        statuses = {k: ("done" if k in prev.reports and prev.reports[k].text else "error" if k in prev.reports else "skipped") for k in TRACKS}
-        panel.html(render_magi(statuses, "complete", prev.session_id, "AUTO", prev.route.objective))
+        panel.html(render_magi(prev.statuses(), "complete", prev.session_id, "AUTO", prev.route.objective))
     else:
         panel.html(render_magi(statuses, "idle", "", "AUTO"))
 
@@ -256,11 +261,9 @@ if auto:
                 meta = {"mode": "auto", "question": question[:200]}
                 with analysis_run(session_id, meta):
                     res = run_core(question, bundle, params, session_id, on_update=on_update, use_llm_router=llm_router)
-                res.metadata = core_metadata(bundle, params, res.route.active)
                 st.session_state["core_result"] = res
                 prev = res
-                panel.html(render_magi({k: ("done" if k in res.reports and res.reports[k].text else "error" if k in res.reports else "skipped") for k in TRACKS},
-                                       "complete", session_id, "AUTO", res.route.objective))
+                panel.html(render_magi(res.statuses(), "complete", session_id, "AUTO", res.route.objective))
             except Exception as e:
                 st.error(f"Core run failed: {e}")
 
@@ -272,12 +275,15 @@ if auto:
         friction = syn.get("strategic_risk_friction", "")
         if friction and friction.lower() not in ("none identified", "none", ""):
             st.warning(f"**Strategic Risk Friction** — {md(friction)}")
-        g = grounding_check(syn.get("executive_summary", ""), res.reports)
+        g = res.grounding()
         rt = res.route
         st.caption(f"Routed by {rt.source} → {', '.join(TRACKS[k].name for k in rt.active)} · "
                    f"routing {res.timings.get('routing', 0):.0f}s · agents {res.timings.get('processing', 0):.0f}s (parallel) · synthesis {res.timings.get('synthesizing', 0):.0f}s · "
-                   f"grounding {'OK' if g['grounded'] else 'CHECK ' + str(g['ungrounded'][:5])} ({g['numbers']} numbers)"
+                   f"grounding {g['rate']}% ({g['checked']} figures checked{', ungrounded: ' + ', '.join(g['ungrounded'][:4]) if g['ungrounded'] else ''})"
+                   + (f" · timed out: {', '.join(TRACKS[k].name for k in res.timed_out)}" if res.timed_out else "")
                    + (f" · PRISM session `{res.session_id}`" if tracing_enabled() else ""))
+        if res.metadata_errors:
+            st.caption("metadata errors: " + "; ".join(res.metadata_errors))
         if syn.get("key_figures"):
             st.dataframe(pd.DataFrame([{"figure": k, "value": v} for k, v in syn["key_figures"].items()]), hide_index=True, width="stretch")
 
@@ -289,7 +295,7 @@ if auto:
             r = res.reports.get(k)
             if r is None:
                 continue
-            with st.expander(f"{r.name} — {r.seconds:.0f}s · tools: {', '.join(r.tool_calls) or 'none'}" + (" · ERROR" if r.error else "")):
+            with st.expander(f"{r.name} — {r.seconds:.0f}s · tools: {', '.join(r.tool_names) or 'none'}" + (f" · ERROR: {r.error}" if r.error else "")):
                 st.markdown(md(r.text) or f"_{r.error or 'no output'}_")
         with st.expander("What PRISM received as truth (computed_* metadata)"):
             st.json(res.metadata)

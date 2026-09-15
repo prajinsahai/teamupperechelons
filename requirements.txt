@@ -10,3 +10,4 @@ pypdf
 openpyxl
 httpx
 prismtrace-sdk>=0.4.3
+pytest

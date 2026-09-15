@@ -8,6 +8,7 @@ so the narrative can cite how a figure was produced.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -55,8 +56,25 @@ class Track:
     needs: str = "claims"  # "claims" | "documents"
 
 
+def _sanitise(x: Any) -> Any:
+    """What the model may see: no private (`_`) keys, no numpy types, no NaN/inf (invalid JSON)."""
+    if isinstance(x, dict):
+        return {str(k): _sanitise(v) for k, v in x.items() if not str(k).startswith("_")}
+    if isinstance(x, (list, tuple)):
+        return [_sanitise(v) for v in x]
+    if isinstance(x, bool):
+        return x
+    if hasattr(x, "item"):  # numpy scalar
+        x = x.item()
+    if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+        return None
+    if isinstance(x, (int, float, str)) or x is None:
+        return x
+    return str(x)
+
+
 def _j(x: Any) -> str:
-    return json.dumps(x, default=lambda o: float(o) if hasattr(o, "__float__") else str(o))
+    return json.dumps(_sanitise(x), allow_nan=False)
 
 
 def _need_claims(b: DataBundle) -> pd.DataFrame:
@@ -133,12 +151,14 @@ def _claims_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
     def claims_intelligence() -> str:
         """Severity trend (latest year vs prior), RF-predicted vs historical severity, Isolation-Forest anomaly counts."""
         ci = get_claims_intelligence(df)
-        return _j({k: v for k, v in ci.items() if k != "anomalous_claim_ids"} | {"top_anomalous_claim_ids": ci["anomalous_claim_ids"][:10]})
+        return _j({k: v for k, v in ci.items() if k != "anomalous_claim_ids"} | {"top_anomalous_claim_ids": ci["anomalous_claim_ids"][:10],
+                   "method": "latest accident year mean severity vs prior 3-year mean; RandomForest predicted severity; IsolationForest bottom-5% anomaly cut"})
 
     @tool
     def anomalous_claims(top_n: int = 10) -> str:
         """The most anomalous claims (Isolation Forest) with their amounts and development month."""
-        return anomaly_table(df, top_n).to_json(orient="records")
+        return _j({"rows": anomaly_table(df, top_n).to_dict(orient="records"), "top_n": top_n,
+                   "method": "Isolation Forest, lowest anomaly score first (bottom 5% of the book)"})
 
     @tool
     def development_pattern() -> str:
@@ -204,7 +224,8 @@ def _reins_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
     @tool
     def attachment_sensitivity() -> str:
         """TCoR at the current retention with the limit halved and doubled."""
-        return _j({"half_limit": tc.tcor_for_layer(df, r, l / 2), "current": tc.tcor_for_layer(df, r, l), "double_limit": tc.tcor_for_layer(df, r, l * 2)})
+        return _j({"half_limit": tc.tcor_for_layer(df, r, l / 2), "current": tc.tcor_for_layer(df, r, l), "double_limit": tc.tcor_for_layer(df, r, l * 2),
+                   "method": "TCoR = premium (expected ceded x 1.35) + expected retained loss + 8% cost of capital on (VaR99.5 - mean), at the current retention"})
 
     @tool
     def quota_share_vs_excess_of_loss() -> str:
@@ -265,7 +286,9 @@ def _capital_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
     ca = cap.capital_adequacy(df, p["capital_held"], p["retention"], p["limit"])
     sp = cap.solvency_position(df, p["capital_held"], p["retention"], p["limit"])
     return {"computed_shortfall_probability_pct": ca["shortfall_probability_pct"], "computed_capital_required_99_5": ca["capital_required_99_5"],
-            "computed_scr_ratio_pct": sp["scr_ratio_pct"], "computed_expected_loss": ca["expected_annual_loss"], "capital_held": p["capital_held"], "confidence_tier": ca["confidence_tier"]}
+            "computed_scr_ratio_pct": sp["scr_ratio_pct"],
+            # net simulated mean; the Actuary owns the canonical gross `computed_expected_loss`
+            "computed_expected_loss_net": ca["expected_annual_loss"], "capital_held": p["capital_held"], "confidence_tier": ca["confidence_tier"]}
 
 
 # ---------------------------------------------------------------- 5. AI Risk Manager
@@ -295,7 +318,8 @@ def _risk_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
     @tool
     def anomalous_claims(top_n: int = 10) -> str:
         """The most anomalous claims (Isolation Forest)."""
-        return anomaly_table(df, top_n).to_json(orient="records")
+        return _j({"rows": anomaly_table(df, top_n).to_dict(orient="records"), "top_n": top_n,
+                   "method": "Isolation Forest, lowest anomaly score first (bottom 5% of the book)"})
 
     @tool
     def monte_carlo_var() -> str:

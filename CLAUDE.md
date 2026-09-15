@@ -95,8 +95,10 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 | 1 | Claim severity | `sklearn.ensemble.RandomForestRegressor` | Predict claim cost from claim/exposure features | `models/severity_rf.joblib` |
 | 2 | Anomaly detection | `sklearn.ensemble.IsolationForest` | Flag unusual claims / outliers in the book | `models/anomaly_iforest.joblib` |
 
-- Trained by `src/ml/train.py` from `data/claims.csv`; `random_state=42` on both.
-- Loaded once via `joblib.load` in `src/ml/predict.py` and cached with `@st.cache_resource`.
+- Trained by `src/ml/train_models.py` from `data/claims.csv`; `random_state=42` on both. Do not retrain:
+  the committed `models/*.joblib` are what the sample numbers and goldens depend on.
+- Loaded once via `joblib.load` in `src/ml/predict.py` (`lru_cache`). Anomaly cut = bottom 5% of scores
+  within the loaded book, so the rate is meaningful on any business.
 - **No third model.** No gradient boosting, no neural nets, no clustering, no "quick
   logistic regression". If it feels like it needs another model, it doesn't — use a
   pure-Python actuarial function instead.
@@ -147,8 +149,11 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 
 ```bash
 .venv/Scripts/python -m pip install -r requirements.txt
-.venv/Scripts/python -m src.ml.train            # trains the two models → models/*.joblib
-.venv/Scripts/python -m pytest                  # actuarial + tool tests
+.venv/Scripts/python -m src.ml.train_models     # trains the two models → models/*.joblib (don't, normally)
+.venv/Scripts/python -m pytest                  # 48 tests, no API key needed: engine hand-checks, tool JSON contract, parsers, grounding
+.venv/Scripts/python -m tests.cohort.freeze --check   # goldens: the deterministic engine must be byte-identical
+.venv/Scripts/python -m tests.cohort.replay --tag baseline --repeat 2   # fixed cohort through the Core, traced to PRISM
+.venv/Scripts/python -m tests.cohort.compare baseline fix1              # the before/after table
 .venv/Scripts/python -m streamlit run app.py    # the demo
 .venv/Scripts/python -m src.tracks.run all      # every track from the CLI, traced, with grounding check
 .venv/Scripts/python -m src.data.supabase_import claims policies   # pull tables to data/imported/
@@ -157,25 +162,24 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 ## 8. Layout
 
 ```
-app.py                Streamlit UI — the only entry point
+app.py                Streamlit UI — the only entry point (Auto = Core, Manual = tracks)
 src/
   actuarial/          pure-Python math (see §5)
-  ml/
-    train.py          trains RF severity + IsolationForest → models/
-    predict.py        loads .joblib, exposes predict_severity(), flag_anomalies()
-  llm/
-    config.py         make_llm() (NVIDIA NIM), model name, system prompt
-    tools.py          @tool wrappers around actuarial/ and ml/ functions
-    agent.py          make_llm() + bind_tools + manual tool loop
-  prism/
-    tracing.py        handler setup, session_id, metadata builder, flush
-data/
-  claims.csv          sample claims (illustrative mid-cap manufacturer)
-  exposure.csv        sample exposure / premium schedule
-models/               *.joblib (gitignored)
+  policy/wording.py   regex clause extraction / gap check over PDF text
+  ml/                 features.py, train_models.py, predict.py (the two models)
+  llm/                config.py (make_llm, NIM), agent.py (run_agent: one @chain, manual tool loop)
+  tracks/registry.py  the six tracks: prompt + tools + computed_* metadata
+  core/               router.py, orchestrator.py (parallel, budgets, per-agent metadata), synthesizer.py, run.py
+  eval/grounding.py   the ONE unit-aware number-grounding checker
+  charts/figures.py   matplotlib figures from engine output only
+  ui/magi.py          the six-node Core panel
+  data/               ingest.py (DataBundle), samples.py (4 businesses), supabase_import.py
+  prism/tracing.py    handler, analysis_run, with_metadata
+data/samples/<slug>/  claims.csv, policy.txt, profile.json per business
+models/               *.joblib (committed)
 tests/
-  test_actuarial.py
-  cohort/             fixed replay cases: input CSV + expected computed_* values
+  test_engine.py, test_tools_contract.py, test_eval_and_parsers.py
+  cohort/             cases.json, freeze.py (goldens), replay.py, compare.py, golden/, results/
 ```
 
 ## 9. Conventions
@@ -200,7 +204,7 @@ tests/
 This project sends traces to PRISM. Env vars: `PRISMTRACE_API_KEY`,
 `PRISMTRACE_PROJECT_ID`, `PRISMTRACE_HOST`.
 
-Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `src/core/orchestrator.py` (one session per Core question; router, each parallel sub-agent and the synthesizer are traced runs inside it), `src/core/router.py` (`core_router` run, callbacks on the invoke) and `src/core/synthesizer.py` (`core_synthesizer` run, callbacks on the invoke — an invoke WITHOUT callbacks is untraced even inside a session), `app.py` (`analysis_run` around every Core run and every manual track run), `src/core/run.py` and `src/tracks/run.py` (CLI runners), `src/prism/smoke.py` (staging live-trace path)
+Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `src/core/orchestrator.py` (one session per Core question; router, each parallel sub-agent and the synthesizer are traced runs inside it), `src/core/router.py` (`core_router` run, callbacks on the invoke) and `src/core/synthesizer.py` (`core_synthesizer` run, callbacks on the invoke — an invoke WITHOUT callbacks is untraced even inside a session), `src/core/orchestrator.py::_run_one` (`with_metadata` so each parallel sub-agent's spans carry its own computed_*, and the synthesizer span the union), `app.py` (`analysis_run` around every Core run and every manual track run), `src/core/run.py`, `src/tracks/run.py` and `tests/cohort/replay.py` (CLI runners), `src/prism/smoke.py` (staging live-trace path)
 
 **Standing rule.** Whenever you add or change an agent, chain, graph, tool,
 retriever, or any entry point that calls a model, wire it to PRISM before you

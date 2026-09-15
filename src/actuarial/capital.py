@@ -6,6 +6,8 @@ per-occurrence retention/limit applied per claim. Seeded -> deterministic.
 
 from __future__ import annotations
 
+import threading
+from collections import OrderedDict
 from typing import Any
 
 import numpy as np
@@ -17,7 +19,21 @@ SEED = 42
 N_PATHS_FULL = 50_000
 N_PATHS_THIN = 20_000
 MAX_DRAWS = 4_000_000
-_CACHE: dict[tuple, dict[str, Any]] = {}  # same data + layer -> same simulation (deterministic anyway)
+# Same data + layer -> same simulation (deterministic anyway). Keyed on CONTENT, not id(df):
+# Streamlit hands the engine a fresh DataFrame copy on every rerun, and four agent threads
+# may ask for the same simulation at once.
+_CACHE: OrderedDict[tuple, dict[str, Any]] = OrderedDict()
+_LOCK = threading.Lock()
+
+
+def _content_key(df: pd.DataFrame) -> Any:
+    """Cheap stable identity for a claims frame: the ingest layer stamps a content hash; fall
+    back to hashing the columns the simulation actually depends on."""
+    h = df.attrs.get("content_hash")
+    if h:
+        return h
+    cols = [c for c in ("claim_amount", "accident_year") if c in df.columns]
+    return int(pd.util.hash_pandas_object(df[cols], index=False).sum())
 
 
 def simulate_aggregate(
@@ -28,9 +44,11 @@ def simulate_aggregate(
     seed: int = SEED,
 ) -> dict[str, Any]:
     """Annual aggregate loss distribution (gross, and net of a per-occurrence XoL layer if given)."""
-    key = (id(df), len(df), float(df["claim_amount"].sum()), retention, limit, n_paths, seed)
-    if key in _CACHE:
-        return _CACHE[key]
+    key = (_content_key(df), retention, limit, n_paths, seed)
+    with _LOCK:
+        if key in _CACHE:
+            _CACHE.move_to_end(key)
+            return _CACHE[key]
     f = fit_frequency(df)
     s = fit_severity(df)
     lam, mu, sigma = f["poisson_lambda"], s["lognormal_mu"], s["lognormal_sigma"]
@@ -82,9 +100,12 @@ def simulate_aggregate(
         "_gross_paths": gross,  # stripped before it reaches the LLM
         "_net_paths": net,
     }
-    if len(_CACHE) > 64:
-        _CACHE.clear()
-    _CACHE[key] = result
+    with _LOCK:
+        if key in _CACHE:  # another thread finished the same simulation first: keep one object
+            return _CACHE[key]
+        _CACHE[key] = result
+        while len(_CACHE) > 64:
+            _CACHE.popitem(last=False)
     return result
 
 

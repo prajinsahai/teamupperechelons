@@ -10,6 +10,7 @@ root run; do not pass callbacks again inside, or spans double up.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
@@ -49,10 +50,12 @@ def run_agent(
     @chain
     def _loop(_: Any) -> dict[str, Any]:
         messages: list[BaseMessage] = [SystemMessage(system_prompt), HumanMessage(question)]
-        calls_made: list[dict[str, Any]] = []
+        calls_made: list[dict[str, Any]] = []  # {name, args, result, seconds} — results feed the grounding check
+        last_text = ""
         for _round in range(MAX_TOOL_ROUNDS):
             response: AIMessage = llm.invoke(messages)
             messages.append(response)
+            last_text = _text_of(response) or last_text
             if not response.tool_calls:
                 text = _text_of(response)
                 if not text and calls_made:
@@ -62,6 +65,7 @@ def run_agent(
                 return {"text": text, "tool_calls": calls_made}
             for call in response.tool_calls:
                 t = tools_by_name.get(call["name"])
+                t0 = time.time()
                 if t is None:
                     result = json.dumps({"error": f"unknown tool {call['name']}"})
                 else:
@@ -69,9 +73,11 @@ def run_agent(
                         result = t.invoke(call["args"])
                     except Exception as e:  # tool errors go back to the model, not up the stack
                         result = json.dumps({"error": str(e)})
-                calls_made.append({"name": call["name"], "args": call["args"]})
-                messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
-        raise RuntimeError("LLM did not finish within the tool-call limit")
+                result = str(result)
+                calls_made.append({"name": call["name"], "args": call["args"], "result": result[:20000], "seconds": round(time.time() - t0, 2)})
+                messages.append(ToolMessage(content=result, tool_call_id=call["id"]))
+        # Tool-call limit reached: return what we have rather than blowing up the run.
+        return {"text": last_text, "tool_calls": calls_made, "truncated": True}
 
     out = _loop.with_config(run_name=run_name).invoke({}, config={"callbacks": prism_callbacks()})
     return out["text"], out["tool_calls"]

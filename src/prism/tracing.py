@@ -115,6 +115,20 @@ def build_metadata(engine_output: dict[str, Any]) -> dict[str, Any]:
 
 
 @contextmanager
+def with_metadata(extra: dict[str, Any]) -> Iterator[None]:
+    """Merge `extra` into the ambient span metadata for the block (nests inside analysis_run).
+
+    Used per sub-agent so each agent's spans carry ITS computed_* truth values, and around
+    the synthesizer so its span carries the union.
+    """
+    token = _run_metadata.set({**_run_metadata.get(), **extra})
+    try:
+        yield
+    finally:
+        _run_metadata.reset(token)
+
+
+@contextmanager
 def analysis_run(session_id: str, metadata: dict[str, Any], *, blocking: bool = False) -> Iterator[str]:
     """Group everything inside under one PRISM session, with computed_* metadata on each span.
 
