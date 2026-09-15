@@ -13,7 +13,9 @@ worth, what reserves it needs, how much reinsurance is actually recovering, and 
 
 Two modes. **Auto — bizmax Core**: ask one question; a router picks which specialist agents
 are needed (the Actuary always runs), they run **in parallel** with their own deterministic
-tools, and a synthesizer merges the reports into one executive summary with evidence charts.
+tools, and their completed reports appear immediately as a grounded rapid brief with evidence charts.
+An optional **Deep final synthesis** toggle runs one additional NVIDIA call when a slower, fully
+reconciled executive narrative is useful.
 The MAGI-style panel shows the six agents lighting up as they work. **Manual**: run one track
 at a time with its own question box, plus a chart-heavy Overview with downloadable data sheets.
 
@@ -41,8 +43,11 @@ tools to call, reads their JSON, and writes the advice. It never computes a figu
 | **AI Risk Manager** | Exposure movement, concentration, emerging threat signals | Exposure by year/line, HHI concentration, red/amber/green emerging signals, anomalies |
 | **AI Policy Analyst** | Exclusions, deductibles, limits, waiting periods, coverage gaps | Regex clause extraction, keyword search, gap check vs modeled severity/VaR |
 
-The **Overview** tab is the deterministic dashboard (portfolio loss, IBNR, recovery, net
-exposure, severity trend, anomalies). Every track run is one PRISM session carrying the engine's
+The post-analysis workspace has six navigable views: **Dashboard, Claims Analysis, Policy
+Intelligence, Reinsurance, Actuarial Engine, and Audit Trail**. It adapts the team's standalone
+frontend into Streamlit with fixed operations navigation, page-specific KPI cards, the live agent
+network, policy evidence cards, reinsurance layers, deterministic charts, data sheets, and the
+current run's measured workflow trace. Every track run is one PRISM session carrying the engine's
 `computed_*` figures as span metadata, so an evaluator can check the narrative against the math.
 
 ## Architecture
@@ -52,13 +57,14 @@ data/claims.csv ──► Actuarial engine (pure Python)  ──► IBNR, reinsu
                 ──► ML models (scikit-learn, joblib) ──► severity prediction, anomaly flags
                                        │
                                        ▼
-                   NVIDIA NIM LLM via langchain-openai (one tool, manual loop)
+                   NVIDIA NIM LLM via langchain-openai (router + tool-calling agents)
                                        │
                                        ▼
-                              Streamlit dashboard (app.py)
+                         Streamlit Risk Command dashboard
 ```
 
-- **Frontend:** Streamlit, single `app.py`
+- **Frontend:** Streamlit, with the visual system in `src/ui/theme.py`, post-analysis components in
+  `src/ui/workspace.py`, and the live processing network in `src/ui/magi.py`
 - **Actuarial math:** pure Python / pandas — loss-development-factor IBNR, per-occurrence excess-of-loss recovery
 - **ML (exactly two models):**
   - `RandomForestRegressor` — claim severity from `exposure, risk_class, previous_claims, deductible, coverage_limit`
@@ -101,9 +107,10 @@ python -m prismtrace.verify              # credential handshake + live-trace doc
 ### Tests and the replay cohort
 
 ```bash
-python -m pytest                                   # 48 tests, no API key: engine hand-checks, tool JSON contract, parsers, grounding
+python -m pytest                                   # 50 tests, no API key: engine hand-checks, tool JSON contract, parsers, grounding
 python -m tests.cohort.freeze --check              # the deterministic engine must match the golden snapshots byte for byte
 python -m tests.cohort.replay --tag baseline --repeat 2   # 16 fixed questions x 4 businesses through the Core, each a PRISM session
+python -m tests.cohort.replay --tag deep --deep-synthesis --only aeg_reserves_capital   # benchmark the optional final NIM call
 python -m tests.cohort.compare baseline fix1       # before/after table: grounding, routing, parse, timeouts, determinism, latency
 ```
 
@@ -129,6 +136,10 @@ src/
     agent.py                 make_llm() + one tool + manual tool loop
   data/
     make_sample_claims.py    seeded synthetic claims generator
+  charts/figures.py          deterministic matplotlib figures
+  ui/theme.py                dark operations visual system and responsive layout
+  ui/workspace.py            KPI, agent, workflow, policy and treaty components
+  ui/magi.py                 animated six-node processing panel
 data/claims.csv              sample portfolio (hypothetical mid-cap manufacturer)
 models/                      severity_rf.joblib, anomaly_iforest.joblib
 CLAUDE.md                    project rules for AI-assisted development

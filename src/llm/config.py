@@ -22,7 +22,13 @@ def api_key_available() -> bool:
     return bool(os.environ.get("NVIDIA_API_KEY"))
 
 
-def make_llm(temperature: float = 0.1, model: str | None = None, max_tokens: int | None = None) -> BaseChatModel:
+def make_llm(
+    temperature: float = 0.1,
+    model: str | None = None,
+    max_tokens: int | None = None,
+    request_timeout: float = 240,
+    max_retries: int = 1,
+) -> BaseChatModel:
     """NVIDIA NIM chat model. Imported lazily so the dashboard loads without the key.
 
     `model` / `max_tokens` overrides exist for the router (small, fast) and the
@@ -34,10 +40,10 @@ def make_llm(temperature: float = 0.1, model: str | None = None, max_tokens: int
         model=model or model_name(),
         api_key=os.environ["NVIDIA_API_KEY"],
         base_url=os.environ.get("NVIDIA_BASE_URL", DEFAULT_BASE_URL),
-        max_tokens=max_tokens or MAX_TOKENS,
+        max_tokens=max_tokens if max_tokens is not None else MAX_TOKENS,
         temperature=temperature,
-        timeout=240,  # tool-heavy turns under 4-way concurrency exceeded 180s; 600 froze the UI on a hang
-        max_retries=1,  # never retry a 4-minute call on stage
+        timeout=request_timeout,
+        max_retries=max_retries,
     )
 
 

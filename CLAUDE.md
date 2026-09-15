@@ -32,11 +32,11 @@ repeat until no tool calls. ~20 lines. No agent framework.
 
 `router.py` (LLM JSON routing per the blueprint, Actuary locked in, keyword fallback) →
 `orchestrator.py` (selected tracks run **in parallel** threads; contextvars copied so the PRISM
-session and computed_* metadata follow) → `synthesizer.py` (executive summary as JSON after a
-`<scratchpad>`; scratchpad stripped; truncated JSON recovered). Charts are NEVER produced by the
+session and computed_* metadata follow) → `synthesizer.py` (instant grounded brief assembled from
+completed model reports by default; optional bounded deep LLM synthesis). Charts are NEVER produced by the
 synthesizer — `src/charts/figures.py` renders from engine output only. The MAGI-style panel is
 `src/ui/magi.py` (nodes strobe cyan↔green while running, lock green when done).
-Manual mode = one track at a time (the tabs). CLI: `python -m src.core.run <business> "<question>"`.
+Manual mode = one track at a time from the relevant workspace page. CLI: `python -m src.core.run <business> "<question>"`.
 
 Sample businesses (`src/data/samples.py` → `data/samples/<slug>/`): velocity (high freq/low sev,
 fraud), nexus (cyber cat, low freq/high sev), aegis (long-tail healthcare), terrafirma (volatile
@@ -150,7 +150,7 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 ```bash
 .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m src.ml.train_models     # trains the two models → models/*.joblib (don't, normally)
-.venv/Scripts/python -m pytest                  # 48 tests, no API key needed: engine hand-checks, tool JSON contract, parsers, grounding
+.venv/Scripts/python -m pytest                  # 50 tests, no API key needed: engine hand-checks, tool JSON contract, parsers, grounding
 .venv/Scripts/python -m tests.cohort.freeze --check   # goldens: the deterministic engine must be byte-identical
 .venv/Scripts/python -m tests.cohort.replay --tag baseline --repeat 2   # fixed cohort through the Core, traced to PRISM
 .venv/Scripts/python -m tests.cohort.compare baseline fix1              # the before/after table
@@ -162,7 +162,7 @@ of a judgement — and it's our answer to "isn't this just a GPT wrapper".
 ## 8. Layout
 
 ```
-app.py                Streamlit UI — the only entry point (Auto = Core, Manual = tracks)
+app.py                Streamlit UI — six post-analysis workspaces (Auto = Core, Manual = tracks)
 src/
   actuarial/          pure-Python math (see §5)
   policy/wording.py   regex clause extraction / gap check over PDF text
@@ -172,7 +172,7 @@ src/
   core/               router.py, orchestrator.py (parallel, budgets, per-agent metadata), synthesizer.py, run.py
   eval/grounding.py   the ONE unit-aware number-grounding checker
   charts/figures.py   matplotlib figures from engine output only
-  ui/magi.py          the six-node Core panel
+  ui/                 theme.py (visual system), workspace.py (results), magi.py (live Core panel)
   data/               ingest.py (DataBundle), samples.py (4 businesses), supabase_import.py
   prism/tracing.py    handler, analysis_run, with_metadata
 data/samples/<slug>/  claims.csv, policy.txt, profile.json per business

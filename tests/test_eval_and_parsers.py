@@ -5,7 +5,7 @@ import json
 import pandas as pd
 
 from src.core.router import keyword_route, _parse_route
-from src.core.synthesizer import parse_synthesis, strip_scratchpad
+from src.core.synthesizer import parse_synthesis, rapid_synthesis, strip_scratchpad
 from src.data.ingest import build_bundle
 from src.eval.grounding import grounding, numbers_in
 
@@ -73,6 +73,19 @@ def test_parse_no_json_falls_back_to_text():
 
 def test_strip_scratchpad():
     assert strip_scratchpad("<scratchpad>a</scratchpad>  body") == "body"
+
+
+def test_rapid_synthesis_uses_completed_report_text_without_an_llm():
+    reports = {
+        "AI Actuary": "FINDINGS:\n- IBNR is **$43.4M**.\n- Capital is adequate.\nRECOMMENDATION:\n- Hold the reserve.\nCONFIDENCE & CAVEATS:\n- Full data.",
+        "AI Risk Manager": "FINDINGS:\n- Tail exposure is concentrated.\nRECOMMENDATION:\n- Monitor the top claims.",
+    }
+    out = rapid_synthesis("Are reserves adequate?", reports)
+    assert out["_mode"] == "rapid" and out["_parse"] == "rapid"
+    assert out["active_agents_cited"] == ["AI Actuary", "AI Risk Manager"]
+    assert "**$43.4M**" in out["executive_summary"]
+    assert "Hold the reserve" in out["executive_summary"]
+    assert "Full data" not in out["executive_summary"]  # concise: findings + recommendation only
 
 
 # ---------------------------------------------------------------- router

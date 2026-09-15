@@ -25,6 +25,7 @@ def main() -> int:
     ap.add_argument("business", help="sample slug (velocity | nexus | aegis | terrafirma) or a claims file path")
     ap.add_argument("question")
     ap.add_argument("--keyword-router", action="store_true")
+    ap.add_argument("--deep-synthesis", action="store_true", help="run the optional extra NIM synthesis call")
     args = ap.parse_args()
 
     samples = list_samples()
@@ -42,7 +43,8 @@ def main() -> int:
         print(f"  [{time.time()-t0:5.0f}s] {phase:12s} " + " ".join(f"{k}:{s}" for k, s in sts.items() if k in lit))
 
     with analysis_run(session_id, {"mode": "auto", "question": args.question[:200]}, blocking=True):
-        res = run_core(args.question, bundle, params, session_id, on_update=on_update, use_llm_router=not args.keyword_router)
+        res = run_core(args.question, bundle, params, session_id, on_update=on_update,
+                       use_llm_router=not args.keyword_router, deep_synthesis=args.deep_synthesis)
 
     print(f"\nROUTE ({res.route.source}): {[TRACKS[k].name for k in res.route.active]} — {res.route.objective}")
     if res.route.error:

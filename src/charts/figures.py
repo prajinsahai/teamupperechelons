@@ -15,8 +15,8 @@ from matplotlib.figure import Figure
 
 matplotlib.use("Agg")
 
-BG, FG, GRID = "#0b1220", "#cfe3f5", "#1f2a3d"
-CYAN, GREEN, ORANGE, RED, MUTED = "#00E5FF", "#22c55e", "#f59e0b", "#ef4444", "#4b5a73"
+BG, FG, GRID = "#080d1b", "#f4f7ff", "#21304c"
+CYAN, GREEN, ORANGE, RED, MUTED = "#35c7ff", "#37e8c2", "#ffbf3f", "#ff5277", "#586581"
 
 
 def _fig(w: float = 7.0, h: float = 3.2) -> tuple[Figure, Any]:

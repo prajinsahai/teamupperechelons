@@ -1,20 +1,20 @@
-"""bizmax — AI Actuary dashboard. Auto mode = bizmax Core (router -> parallel agents -> synthesis);
-Manual mode = one track at a time.
+"""bizmax AI Actuary operations workspace.
 
-Run:  .venv/Scripts/python -m streamlit run app.py
+Run: .venv/Scripts/python -m streamlit run app.py
 """
 
+from __future__ import annotations
+
 import os
+import re
 from pathlib import Path
 from typing import Any
 
-# Engine/model paths are project-relative; make them work from any launch directory.
 os.chdir(Path(__file__).resolve().parent)
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 from src.actuarial import capital as cap
@@ -26,6 +26,7 @@ from src.actuarial.ibnr import calculate_ibnr
 from src.actuarial.reinsurance import calculate_reinsurance_recovery
 from src.charts import figures as F
 from src.core.orchestrator import CoreResult, run_core
+from src.core.synthesizer import strip_scratchpad
 from src.data.ingest import DataBundle, build_bundle, bundle_from_paths
 from src.data.samples import list_samples, sample_files
 from src.llm.agent import api_key_available, run_agent
@@ -35,41 +36,53 @@ from src.policy import wording
 from src.prism.tracing import analysis_run, new_session_id, tracing_enabled
 from src.tracks.registry import TRACKS
 from src.ui.magi import render_magi
+from src.ui.theme import apply_theme, section_header, sidebar_brand, sidebar_system_card
+from src.ui.workspace import (
+    agent_network, clause_card, evidence_detail, metric_grid, panel_header,
+    portfolio_bar, reinsurance_layers, risk_metric_list, workflow_trace,
+    workspace_header,
+)
 
 load_dotenv()
-
 IMPORT_DIR = Path("data/imported")
-st.set_page_config(page_title="bizmax · AI Actuary", page_icon="📐", layout="wide")
+PAGES = ("Dashboard", "Claims Analysis", "Policy Intelligence", "Reinsurance", "Actuarial Engine", "Audit Trail")
+NAV_LABELS = {
+    "Dashboard": "▦  Dashboard",
+    "Claims Analysis": "⌁  Claims Analysis",
+    "Policy Intelligence": "▤  Policy Intelligence",
+    "Reinsurance": "⬡  Reinsurance",
+    "Actuarial Engine": "▦  Actuarial Engine",
+    "Audit Trail": "◷  Audit Trail",
+}
+
+st.set_page_config(page_title="bizmax · AI Actuary", page_icon="🛡️", layout="wide", initial_sidebar_state="expanded")
+apply_theme()
 
 
-# ---------------------------------------------------------------- helpers
-def money(x: float) -> str:
-    if abs(x) >= 1e9:
-        return f"${x / 1e9:,.2f}B"
-    if abs(x) >= 1e6:
-        return f"${x / 1e6:,.1f}M"
-    if abs(x) >= 1e3:
-        return f"${x / 1e3:,.0f}K"
-    return f"${x:,.0f}"
-
-
-def money_md(x: float) -> str:
-    return money(x).replace("$", "\\$")
+def money(value: float) -> str:
+    value = float(value or 0)
+    if abs(value) >= 1e9:
+        return f"${value / 1e9:,.2f}B"
+    if abs(value) >= 1e6:
+        return f"${value / 1e6:,.1f}M"
+    if abs(value) >= 1e3:
+        return f"${value / 1e3:,.0f}K"
+    return f"${value:,.0f}"
 
 
 def md(text: str) -> str:
-    """LLM markdown for st.markdown/st.info: escape $ so Streamlit does not read $...$ as LaTeX."""
     return (text or "").replace("$", "\\$")
 
 
 def show(fig) -> None:
-    st.pyplot(fig, width="stretch"); plt.close(fig)
+    st.pyplot(fig, width="stretch")
+    plt.close(fig)
 
 
-def sheet(df: pd.DataFrame, name: str, money_cols: list[str] | None = None, height: int = 260) -> None:
-    fmt = {c: "${:,.0f}" for c in (money_cols or []) if c in df.columns}
-    st.dataframe(df.style.format(fmt) if fmt else df, hide_index=True, height=height, width="stretch")
-    st.download_button(f"Download {name}.csv", df.to_csv(index=False).encode(), f"{name}.csv", "text/csv", key=f"dl_{name}")
+def sheet(frame: pd.DataFrame, name: str, money_cols: list[str] | None = None, height: int = 290) -> None:
+    fmt = {column: "${:,.0f}" for column in (money_cols or []) if column in frame.columns}
+    st.dataframe(frame.style.format(fmt) if fmt else frame, hide_index=True, height=height, width="stretch")
+    st.download_button(f"Export {name}.csv", frame.to_csv(index=False).encode(), f"{name}.csv", "text/csv", key=f"download_{name}")
 
 
 @st.cache_data(show_spinner=False)
@@ -78,346 +91,497 @@ def _bundle_from_uploads(files: tuple[tuple[str, bytes], ...]) -> DataBundle:
 
 
 @st.cache_data(show_spinner=False)
-def _bundle_from_disk_v(paths: tuple[str, ...], _stamps: tuple[tuple[float, int], ...]) -> DataBundle:
+def _bundle_from_disk_versioned(paths: tuple[str, ...], _stamps: tuple[tuple[float, int], ...]) -> DataBundle:
     return bundle_from_paths(list(paths))
 
 
 def _bundle_from_disk(paths: tuple[str, ...]) -> DataBundle:
-    """Cache keyed on (path, mtime, size) so a Supabase re-import to the same file is picked up."""
-    stamps = tuple((Path(p).stat().st_mtime, Path(p).stat().st_size) for p in paths)
-    return _bundle_from_disk_v(paths, stamps)
+    stamps = tuple((Path(path).stat().st_mtime, Path(path).stat().st_size) for path in paths)
+    return _bundle_from_disk_versioned(paths, stamps)
 
 
 @st.cache_data(show_spinner=False)
 def engine(df: pd.DataFrame, retention: float, limit: float, capital_held: float) -> dict[str, Any]:
-    """Everything deterministic the dashboard shows, computed once per (data, programme)."""
+    """Everything shown by the workspace, computed deterministically per portfolio."""
     return {
-        "ibnr": calculate_ibnr(df), "rec": calculate_reinsurance_recovery(df, retention, limit), "intel": get_claims_intelligence(df),
-        "freq": fit_frequency(df), "sev": fit_severity(df), "tri": dev.loss_triangle(df), "stress": stress_test(df),
-        "sim": cap.simulate_aggregate(df, retention, limit), "solv": cap.solvency_position(df, capital_held, retention, limit),
-        "adq": cap.capital_adequacy(df, capital_held, retention, limit), "expo": expo.exposure_movement(df),
-        "conc": expo.concentration(df), "emerg": expo.emerging_signals(df), "sweep": tc.retention_sweep(df, limit),
-        "cmp": tc.compare_structures(df, retention, limit), "qs": tc.quota_share_vs_xol(df, retention, limit),
-        "devp": dev.development_pattern(df), "adv": dev.adverse_development(df), "leak": dev.claims_leakage(df),
+        "ibnr": calculate_ibnr(df), "rec": calculate_reinsurance_recovery(df, retention, limit),
+        "intel": get_claims_intelligence(df), "freq": fit_frequency(df), "sev": fit_severity(df),
+        "tri": dev.loss_triangle(df), "stress": stress_test(df),
+        "sim": cap.simulate_aggregate(df, retention, limit),
+        "solv": cap.solvency_position(df, capital_held, retention, limit),
+        "adq": cap.capital_adequacy(df, capital_held, retention, limit),
+        "expo": expo.exposure_movement(df), "conc": expo.concentration(df),
+        "emerg": expo.emerging_signals(df), "sweep": tc.retention_sweep(df, limit),
+        "cmp": tc.compare_structures(df, retention, limit),
+        "qs": tc.quota_share_vs_xol(df, retention, limit),
+        "devp": dev.development_pattern(df), "adv": dev.adverse_development(df),
+        "leak": dev.claims_leakage(df),
     }
 
 
-# ---------------------------------------------------------------- sidebar
+def _merge_documents(base: DataBundle, uploads: list[Any]) -> DataBundle:
+    if not uploads:
+        return base
+    docs = build_bundle([(upload.name, upload.getvalue()) for upload in uploads])
+    return DataBundle(
+        claims=base.claims, tables=dict(base.tables), documents={**base.documents, **docs.documents},
+        notes=[*base.notes, *docs.notes], sources=[*base.sources, *docs.sources],
+    )
+
+
+# Sidebar navigation and inputs.
 samples = list_samples()
 with st.sidebar:
-    st.markdown("### Mode")
-    mode = st.radio("Mode", ["Auto — bizmax Core", "Manual — single track"], label_visibility="collapsed")
-    auto = mode.startswith("Auto")
+    sidebar_brand()
+    selected_label = st.radio("Workspace", [NAV_LABELS[p] for p in PAGES], label_visibility="collapsed", key="workspace_navigation")
+    page = next(name for name, label in NAV_LABELS.items() if label == selected_label)
 
-    st.markdown("### Data")
-    source = st.radio("Source", ["Sample business", "Upload files", "Supabase import"], label_visibility="collapsed")
-    bundle: DataBundle | None = None
-    prof: dict[str, Any] | None = None
-    if source == "Sample business":
-        slug = st.selectbox("Business", list(samples), format_func=lambda s: samples[s]["name"])
-        prof = samples[slug]
-        st.caption(f"{prof['tagline']}  \n**Focus:** {prof['focus']}")
-        bundle = _bundle_from_disk(tuple(sample_files(slug)))
-    elif source == "Upload files":
-        ups = st.file_uploader("Claims / policies / treaties (CSV, XLSX) and wordings (PDF, TXT)",
-                               type=["csv", "xlsx", "xls", "pdf", "txt"], accept_multiple_files=True)
-        if ups:
-            bundle = _bundle_from_uploads(tuple((u.name, u.getvalue()) for u in ups))
-    else:
-        st.caption("Reads tables via the Supabase REST API into `data/imported/*.csv`.")
-        tables = st.text_input("Table names (comma-separated)", placeholder="claims, policies, treaties")
-        if st.button("Import from Supabase"):
-            from src.data.supabase_import import import_tables
-            try:
-                with st.spinner("Importing…"):
-                    paths = import_tables([t.strip() for t in tables.split(",") if t.strip()])
-                st.success("Imported: " + ", ".join(f"{k} ({v.name})" for k, v in paths.items()))
-            except Exception as e:
-                st.error(str(e))
-        imported = sorted(str(p) for p in IMPORT_DIR.glob("*.csv")) if IMPORT_DIR.exists() else []
-        if imported:
-            chosen = st.multiselect("Imported tables to load", imported, default=imported)
-            extra = st.file_uploader("Add policy PDFs (optional)", type=["pdf", "txt"], accept_multiple_files=True)
-            if chosen:
-                bundle = _bundle_from_disk(tuple(chosen))
-                if extra:
-                    docs = build_bundle([(u.name, u.getvalue()) for u in extra])
-                    bundle.documents.update(docs.documents); bundle.sources += docs.sources
+    with st.expander("Portfolio & data", expanded=True):
+        source = st.selectbox("Data source", ["Sample business", "Upload files", "Supabase import"])
+        bundle: DataBundle | None = None
+        profile: dict[str, Any] | None = None
+        if source == "Sample business":
+            slug = st.selectbox("Business", list(samples), format_func=lambda key: samples[key]["name"])
+            profile = samples[slug]
+            st.caption(f"{profile['tagline']}  \n**Focus:** {profile['focus']}")
+            bundle = _bundle_from_disk(tuple(sample_files(slug)))
+        elif source == "Upload files":
+            uploads = st.file_uploader("Claims, treaties and wordings", type=["csv", "xlsx", "xls", "pdf", "txt"], accept_multiple_files=True)
+            if uploads:
+                bundle = _bundle_from_uploads(tuple((upload.name, upload.getvalue()) for upload in uploads))
         else:
-            st.info("No imported tables yet.")
+            st.caption("Imports Supabase tables to local CSV before analysis.")
+            tables = st.text_input("Table names", placeholder="claims, policies, treaties")
+            if st.button("Import from Supabase", width="stretch"):
+                from src.data.supabase_import import import_tables
+                try:
+                    with st.spinner("Importing tables…"):
+                        paths = import_tables([item.strip() for item in tables.split(",") if item.strip()])
+                    st.success("Imported " + ", ".join(paths))
+                except Exception as exc:
+                    st.error(str(exc))
+            imported = sorted(str(path) for path in IMPORT_DIR.glob("*.csv")) if IMPORT_DIR.exists() else []
+            if imported:
+                chosen = st.multiselect("Imported tables", imported, default=imported)
+                extra = st.file_uploader("Add policy files", type=["pdf", "txt"], accept_multiple_files=True)
+                if chosen:
+                    bundle = _merge_documents(_bundle_from_disk(tuple(chosen)), extra or [])
+            else:
+                st.info("No imported tables yet.")
 
-    st.markdown("### Programme")
-    d = (prof or {}).get("programme", {"retention": 500_000, "limit": 4_500_000, "capital_held": 60_000_000})
-    key_suffix = (prof or {}).get("slug", "custom")
-    retention = st.number_input("Retention ($)", min_value=0, value=int(d["retention"]), step=50_000, format="%d", key=f"ret_{key_suffix}")
-    limit = st.number_input("Layer limit ($)", min_value=100_000, value=int(d["limit"]), step=250_000, format="%d", key=f"lim_{key_suffix}")
-    capital_held = st.number_input("Capital held ($)", min_value=0, value=int(d["capital_held"]), step=500_000, format="%d", key=f"cap_{key_suffix}")
+    with st.expander("Programme settings", expanded=False):
+        defaults = (profile or {}).get("programme", {"retention": 500_000, "limit": 4_500_000, "capital_held": 60_000_000})
+        suffix = (profile or {}).get("slug", "custom")
+        retention = st.number_input("Retention ($)", min_value=0, value=int(defaults["retention"]), step=50_000, key=f"ret_{suffix}")
+        limit = st.number_input("Layer limit ($)", min_value=100_000, value=int(defaults["limit"]), step=250_000, key=f"lim_{suffix}")
+        capital_held = st.number_input("Capital held ($)", min_value=0, value=int(defaults["capital_held"]), step=500_000, key=f"cap_{suffix}")
     params = {"retention": float(retention), "limit": float(limit), "capital_held": float(capital_held)}
 
-    st.markdown("---")
-    st.caption(f"LLM: `{model_name()}` via NVIDIA NIM")
-    st.caption("Math: pure Python · ML: scikit-learn (2 models)")
-    st.caption("PRISM tracing: " + ("on" if tracing_enabled() else "off"))
+    with st.expander("Analysis controls", expanded=False):
+        operating_mode = st.selectbox("Mode", ["Auto — bizmax Core", "Manual — specialist"])
+        llm_router = st.toggle("LLM router", value=True, help="Turn off for instant keyword routing.")
+        deep_synthesis = st.toggle("Deep final synthesis", value=False, help="Off displays completed specialist reports immediately.")
+    manual_mode = operating_mode.startswith("Manual")
+    sidebar_system_card(model=model_name(), traced=tracing_enabled())
 
 
-# ---------------------------------------------------------------- header
-st.title("bizmax · AI Actuary")
-st.caption("AI-native insurance optimization for corporate risk · all figures illustrative, modeled estimates")
+business_name = (profile or {}).get("name", "Uploaded risk portfolio" if source == "Upload files" else "Supabase risk portfolio")
+focus = (profile or {}).get("focus", "Analysis based on the currently loaded files.")
+claim_count = len(bundle.claims) if bundle is not None and bundle.claims is not None else 0
+workspace_header(page, business=business_name, model=model_name(), traced=tracing_enabled(), claim_count=claim_count)
+
 if bundle is None:
-    st.info("Pick a sample business, upload files, or import from Supabase in the sidebar."); st.stop()
+    section_header("DATA INTAKE", "Connect a portfolio", "Load samples, multiple files, or Supabase tables from the sidebar.")
+    st.info("The operating workspace will populate as soon as data is loaded.")
+    st.stop()
+
 has_claims = bundle.claims is not None and not bundle.claims.empty
-E = engine(bundle.claims, **params) if has_claims else None
-with st.expander(f"Loaded data — {len(bundle.sources)} source(s)"):
-    st.write(bundle.profile())
+E: dict[str, Any] | None = None
+if has_claims:
+    try:
+        E = engine(bundle.claims, **params)
+    except Exception as exc:
+        st.error(f"The deterministic engine could not process this claims table: {exc}")
+
+portfolio_bar(business=business_name, focus=focus, source_count=len(bundle.sources), claim_count=claim_count, mode="Manual" if manual_mode else "Auto / Core")
+
+CORE_EXAMPLES = [
+    "Give me a full risk assessment of this business.",
+    "Are our reserves adequate and is our capital position solvent?",
+    "Is our reinsurance programme right for the tail we carry, and what would it cost to change it?",
+    "Where is claims leakage or fraud costing us, and how much?",
+    "What happens to us in a catastrophe year, and does the policy actually pay?",
+    "Which lines are deteriorating and what should we do about them this quarter?",
+]
 
 
-# ================================================================ AUTO MODE
-def render_core_charts(res: CoreResult) -> None:
-    """Charts for whichever agents the router activated — all from the engine."""
-    if E is None:
-        return
-    active = set(res.route.active)
-    if "actuary" in active:
-        st.markdown("#### Actuary — reserving & pricing")
-        c1, c2 = st.columns(2)
-        with c1: show(F.ibnr_by_year(E["ibnr"], E["tri"]))
-        with c2: show(F.frequency_severity_by_year(E["freq"], bundle.claims))
-        show(F.loss_triangle_heatmap(E["tri"]))
-    if "claims" in active:
-        st.markdown("#### Claims Analyst — patterns, leakage, litigation")
-        c1, c2 = st.columns(2)
-        with c1: show(F.severity_trend(E["intel"]))
-        with c2: show(F.development_curve(E["devp"]))
-        show(F.leakage_bars(E["leak"]))
-    if "reinsurance" in active:
-        st.markdown("#### Reinsurance Manager — flow, retention, structures")
-        show(F.reinsurance_flow(E["rec"]))
-        c1, c2 = st.columns(2)
-        with c1: show(F.tcor_curve(E["sweep"], params["retention"]))
-        with c2: show(F.structures_bar(E["cmp"], E["qs"]))
-    if "capital" in active:
-        st.markdown("#### Capital Manager — solvency")
-        c1, c2 = st.columns([1, 2])
-        with c1: show(F.solvency_gauge(E["solv"]))
-        with c2: show(F.aggregate_histogram(E["sim"], params["capital_held"]))
-    if "risk" in active:
-        st.markdown("#### Risk Manager — exposure & emerging signals")
-        c1, c2 = st.columns(2)
-        with c1: show(F.exposure_vs_loss(E["expo"]))
-        with c2: show(F.emerging_signals_bars(E["emerg"]))
-        show(F.stress_bars(E["stress"]))
-    if "policy" in active and bundle.documents:
-        st.markdown("#### Policy Analyst — wording")
-        cl = wording.extract_clauses(bundle.documents)
-        c1, c2 = st.columns([1, 2])
-        with c1: show(F.clause_counts(cl))
-        with c2:
-            rows = [{"category": c, "document": h["document"], "clause": h["text"][:160], "amounts": ", ".join(h["amounts"])} for c, hs in cl["clauses"].items() for h in hs[:3]]
-            st.dataframe(pd.DataFrame(rows), hide_index=True, height=260, width="stretch")
+def run_core_console(*, expanded: bool) -> None:
+    title = "Run another Core analysis" if st.session_state.get("core_result") else "Start multi-agent analysis"
+    with st.expander(title, expanded=expanded):
+        if "core_q" not in st.session_state:
+            st.session_state["core_q"] = CORE_EXAMPLES[0]
 
+        def choose_example() -> None:
+            st.session_state["core_q"] = st.session_state["core_example"]
 
-if auto:
-    st.subheader("bizmax Core")
-    st.caption("Ask anything about this business. The Core routes the question, runs the relevant agents in parallel, and synthesizes one answer. Every number comes from a Python tool.")
-    examples = [
-        "Give me a full risk assessment of this business.",
-        "Are our reserves adequate and is our capital position solvent?",
-        "Is our reinsurance programme right for the tail we carry, and what would it cost to change it?",
-        "Where is claims leakage or fraud costing us, and how much?",
-        "What happens to us in a catastrophe year, and does the policy actually pay?",
-        "Which lines are deteriorating and what should we do about them this quarter?",
-    ]
-    if "core_q" not in st.session_state:
-        st.session_state["core_q"] = examples[0]
-    st.selectbox("Example questions", examples, key="core_pick", on_change=lambda: st.session_state.update(core_q=st.session_state["core_pick"]))
-    question = st.text_area("Question", key="core_q", height=70)
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        run = st.button("Run bizmax Core", type="primary", disabled=not (has_claims and api_key_available()))
-    with c2:
-        llm_router = st.toggle("LLM router (off = keyword router, faster)", value=True)
-    if not has_claims:
-        st.warning("Needs claims data.")
-    elif not api_key_available():
-        st.warning("`NVIDIA_API_KEY` is not set in `.env`.")
-
-    panel = st.empty()
-    statuses = {k: "idle" for k in TRACKS}
-    prev: CoreResult | None = st.session_state.get("core_result")
-    if prev is not None and not run:
-        panel.html(render_magi(prev.statuses(), "complete", prev.session_id, "AUTO", prev.route.objective))
-    else:
-        panel.html(render_magi(statuses, "idle", "", "AUTO"))
-
-    if run:
+        st.selectbox("Example questions", CORE_EXAMPLES, key="core_example", on_change=choose_example)
+        question = st.text_area("Ask bizmax Core", key="core_q", height=82)
+        run = st.button("Run multi-agent analysis", type="primary", disabled=not (has_claims and api_key_available()), width="stretch")
+        if not has_claims:
+            st.warning("Core needs a claims table.")
+        elif not api_key_available():
+            st.warning("`NVIDIA_API_KEY` is not set in `.env`.")
+        if not run:
+            return
+        panel = st.empty()
         session_id = new_session_id("core")
 
-        def on_update(phase: str, sts: dict[str, str]) -> None:
-            panel.html(render_magi(sts, phase, session_id, "AUTO", ""))
+        def on_update(phase: str, states: dict[str, str]) -> None:
+            panel.html(render_magi(states, phase, session_id, "AUTO", ""))
 
-        with st.spinner("bizmax Core is working…"):
-            try:
-                # route first (cheap) to know which tracks' computed_* to attach, then run inside the traced session
-                meta = {"mode": "auto", "question": question[:200]}
+        try:
+            meta = {"mode": "auto", "question": question[:200], "synthesis_mode": "deep" if deep_synthesis else "rapid"}
+            with st.spinner("Routing and running the selected specialists in parallel…"):
                 with analysis_run(session_id, meta):
-                    res = run_core(question, bundle, params, session_id, on_update=on_update, use_llm_router=llm_router)
-                st.session_state["core_result"] = res
-                prev = res
-                panel.html(render_magi(res.statuses(), "complete", session_id, "AUTO", res.route.objective))
-            except Exception as e:
-                st.error(f"Core run failed: {e}")
+                    result = run_core(question, bundle, params, session_id, on_update=on_update, use_llm_router=llm_router, deep_synthesis=deep_synthesis)
+            st.session_state["core_result"] = result
+            panel.html(render_magi(result.statuses(), "complete", session_id, "AUTO", result.route.objective))
+            st.rerun()
+        except Exception as exc:
+            st.error(f"Core run failed: {exc}")
 
-    if prev is not None:
-        res = prev
-        syn = res.synthesis
-        st.markdown("### Executive summary")
-        st.markdown(md(syn.get("executive_summary", "")) or "_(empty)_")
-        friction = syn.get("strategic_risk_friction", "")
-        if friction and friction.lower() not in ("none identified", "none", ""):
+
+def render_manual_track(track_key: str) -> None:
+    track = TRACKS[track_key]
+    ready = has_claims if track.needs == "claims" else bool(bundle.documents)
+    section_header("SPECIALIST WORKSPACE", track.name, track.blurb)
+    if not ready:
+        st.warning("This specialist needs claims data." if track.needs == "claims" else "This specialist needs a PDF or TXT policy document.")
+        return
+    if not api_key_available():
+        st.warning("`NVIDIA_API_KEY` is not set in `.env`.")
+        return
+    question_key = f"question_{track_key}"
+    if question_key not in st.session_state:
+        st.session_state[question_key] = track.default_question
+
+    def choose_example() -> None:
+        st.session_state[question_key] = st.session_state[f"example_{track_key}"]
+
+    st.selectbox("Example questions", track.example_questions, key=f"example_{track_key}", on_change=choose_example)
+    question = st.text_area("Question", key=question_key, height=78)
+    state_key = f"result_{track_key}"
+    if st.button(f"Run {track.name}", type="primary", key=f"run_{track_key}"):
+        session_id = new_session_id(track_key)
+        try:
+            with st.spinner(f"{track.name} is analysing the loaded evidence…"):
+                tools = track.build_tools(bundle, params)
+                meta = {"track": track_key, **track.metadata(bundle, params)}
+                with analysis_run(session_id, meta):
+                    text, calls = run_agent(track.system_prompt, question, tools, run_name=f"{track_key}_track")
+            st.session_state[state_key] = {"text": strip_scratchpad(text), "calls": calls, "session": session_id, "meta": meta}
+        except Exception as exc:
+            st.error(f"{track.name} failed: {exc}")
+    if state_key in st.session_state:
+        result = st.session_state[state_key]
+        st.info(md(result["text"]) or "_(No answer was returned.)_", icon="📐")
+        calls = ", ".join(f"{call['name']} ({call.get('seconds', 0):.1f}s)" for call in result["calls"]) or "none"
+        st.caption("Tools: " + calls + (f" · PRISM session `{result['session']}`" if tracing_enabled() else ""))
+        with st.expander("Computed truth sent to PRISM"):
+            st.json(result["meta"])
+
+
+def render_core_decision(result: CoreResult) -> None:
+    synthesis = result.synthesis
+    rapid = synthesis.get("_mode") == "rapid" or synthesis.get("_parse") == "rapid"
+    panel_header("Rapid decision brief" if rapid else "Executive synthesis", "Completed specialist findings grounded in Python output.", badge="RAPID" if rapid else "DEEP", tone="green", icon="✦")
+    with st.container(border=True):
+        st.markdown(md(synthesis.get("executive_summary", "")) or "_(No synthesis returned.)_")
+        friction = synthesis.get("strategic_risk_friction", "")
+        if friction and friction.lower() not in ("none", "none identified"):
             st.warning(f"**Strategic Risk Friction** — {md(friction)}")
-        g = res.grounding()
-        rt = res.route
-        st.caption(f"Routed by {rt.source} → {', '.join(TRACKS[k].name for k in rt.active)} · "
-                   f"routing {res.timings.get('routing', 0):.0f}s · agents {res.timings.get('processing', 0):.0f}s (parallel) · synthesis {res.timings.get('synthesizing', 0):.0f}s · "
-                   f"grounding {g['rate']}% ({g['checked']} figures checked{', ungrounded: ' + ', '.join(g['ungrounded'][:4]) if g['ungrounded'] else ''})"
-                   + (f" · timed out: {', '.join(TRACKS[k].name for k in res.timed_out)}" if res.timed_out else "")
-                   + (f" · PRISM session `{res.session_id}`" if tracing_enabled() else ""))
-        if res.metadata_errors:
-            st.caption("metadata errors: " + "; ".join(res.metadata_errors))
-        if syn.get("key_figures"):
-            st.dataframe(pd.DataFrame([{"figure": k, "value": v} for k, v in syn["key_figures"].items()]), hide_index=True, width="stretch")
+        grounding = result.grounding()
+        phase = "rapid assembly" if rapid else "deep synthesis"
+        st.caption(
+            f"{result.route.source} router → {', '.join(TRACKS[key].name for key in result.route.active)} · "
+            f"routing {result.timings.get('routing', 0):.1f}s · specialists {result.timings.get('processing', 0):.1f}s parallel · "
+            f"{phase} {result.timings.get('synthesizing', 0):.2f}s · grounding {grounding['rate']:.0f}%"
+            + (f" · PRISM `{result.session_id}`" if tracing_enabled() else "")
+        )
 
-        st.markdown("### Evidence")
-        render_core_charts(res)
 
-        st.markdown("### Sub-agent reports")
-        for k in rt.active:
-            r = res.reports.get(k)
-            if r is None:
-                continue
-            with st.expander(f"{r.name} — {r.seconds:.0f}s · tools: {', '.join(r.tool_names) or 'none'}" + (f" · ERROR: {r.error}" if r.error else "")):
-                st.markdown(md(r.text) or f"_{r.error or 'no output'}_")
-        with st.expander("What PRISM received as truth (computed_* metadata)"):
-            st.json(res.metadata)
+def render_dashboard() -> None:
+    if E is None:
+        st.warning("Dashboard metrics need a valid claims table.")
+        return
+    ibnr, rec, solv = E["ibnr"], E["rec"], E["solv"]
+    metric_grid([
+        {"label": "Reported loss", "value": money(ibnr["portfolio_loss"]), "note": f"Paid {money(ibnr['paid_to_date'])}", "tone": "red", "icon": "↘"},
+        {"label": "IBNR reserve", "value": money(ibnr["ibnr"]), "note": f"Ultimate {money(ibnr['ultimate_loss'])}", "tone": "cyan", "icon": "Σ"},
+        {"label": "Expected recovery", "value": money(rec["expected_recovery"]), "note": f"{rec['claims_in_layer']} claims entered layer", "tone": "green", "icon": "⬡"},
+        {"label": "Net ultimate exposure", "value": money(ibnr["ultimate_loss"] - rec["expected_recovery"]), "note": f"SCR ratio {solv['scr_ratio_pct']:.0f}% · {solv['status']}", "tone": "amber", "icon": "◇"},
+    ])
+    result: CoreResult | None = st.session_state.get("core_result")
+    if result is None:
+        panel_header("Multi-agent Analysis", "Ask one question; the router selects the needed specialists.", badge="READY", tone="cyan", icon="✦")
+        run_core_console(expanded=True)
+    else:
+        render_core_decision(result)
+    left, right = st.columns([2.05, 1], gap="medium")
+    with left:
+        panel_header("Agent Network", "Six specialists coordinated by bizmax Core.", badge=f"{len(result.route.active) if result else 0} ACTIVE", tone="green", icon="⌁")
+        agent_network(result)
+    with right:
+        stats = E["sim"]["net_of_reinsurance"]
+        panel_header("Risk Metrics", f"Monte Carlo · {E['sim']['paths']:,} simulations", badge=E["sim"]["confidence_tier"].replace("_", " ").upper(), tone="red", icon="◇")
+        risk_metric_list([
+            ("Expected annual loss", money(stats["mean"]), "mean"),
+            ("VaR (95%)", money(stats["var_95"]), "95%"),
+            ("VaR (99%)", money(stats["var_99"]), "99%"),
+            ("VaR (99.5%)", money(stats["var_99_5"]), "SCR basis"),
+            ("TVaR (99%)", money(stats["tvar_99"]), "tail"),
+        ])
+    panel_header("Workflow Trace", "How this portfolio moves from data to decision.", badge="PRISM" if tracing_enabled() else "LOCAL", tone="cyan", icon="◷")
+    workflow_trace(result, source_count=len(bundle.sources), claim_count=claim_count, traced=tracing_enabled())
+    if result is not None:
+        run_core_console(expanded=False)
 
-# ================================================================ MANUAL MODE
+
+def render_claims() -> None:
+    if E is None:
+        st.warning("Claims Analysis needs a valid claims table.")
+        return
+    df, intel, leakage = bundle.claims, E["intel"], E["leak"]
+    metric_grid([
+        {"label": "Total claims", "value": f"{intel['claim_count']:,}", "note": f"Years {min(intel['severity_by_year'])}–{max(intel['severity_by_year'])}", "tone": "cyan", "icon": "▥"},
+        {"label": "Average severity", "value": money(intel["historical_mean_severity"]), "note": f"Latest {intel['severity_change_pct']:+.1f}% vs prior", "tone": "red", "icon": "↗"},
+        {"label": "Anomalies", "value": f"{intel['anomaly_count']}", "note": f"Isolation Forest · {intel['anomaly_rate_pct']:.1f}% of book", "tone": "amber", "icon": "⚠"},
+        {"label": "Claims leakage", "value": f"{leakage['leakage_rate_pct']:.2f}%", "note": f"{leakage['overpaid_claim_count']} claims · {money(leakage['leakage_total'])}", "tone": "green", "icon": "⌁"},
+    ])
+    left, right = st.columns(2, gap="medium")
+    with left:
+        panel_header("Claim Severity Trend", "Average severity by accident year.", badge=f"{intel['severity_change_pct']:+.1f}%", tone="red", icon="↗")
+        show(F.severity_trend(intel))
+    with right:
+        panel_header("Frequency and Severity", "Claim counts and mean claim size by year.", badge=E["freq"]["distribution"].upper(), tone="cyan", icon="⌁")
+        show(F.frequency_severity_by_year(E["freq"], df))
+    left, right = st.columns(2, gap="medium")
+    with left:
+        panel_header("Payment Development", "Paid-to-reported ratio by development age.", tone="green", icon="◉")
+        show(F.development_curve(E["devp"]))
+    with right:
+        panel_header("Claims by Line", "Loss by line of business and accident year.", tone="amber", icon="▥")
+        show(F.loss_by_line(df))
+    panel_header("Anomalous Claims Detected", "Isolation Forest · lowest anomaly score first.", badge=f"{intel['anomaly_count']} FLAGGED", tone="amber", icon="⚠")
+    anomalies = anomaly_table(df, min(20, max(10, intel["anomaly_count"])))
+    sheet(anomalies, "anomalous_claims", ["claim_amount", "reported_amount", "paid_amount", "reserve"], 365)
+    panel_header("Two-model Intelligence", "The only trained ML models in this project.", badge="2 MODELS", tone="green", icon="ML")
+    metric_grid([
+        {"label": "Severity model", "value": "Random Forest", "note": f"Predicted mean {money(intel['predicted_mean_severity'])}", "tone": "green", "icon": "RF"},
+        {"label": "Anomaly model", "value": "Isolation Forest", "note": f"{intel['anomaly_count']} claims · bottom 5% cut", "tone": "amber", "icon": "IF"},
+        {"label": "Litigation", "value": f"{leakage['litigation_rate_pct']:.1f}%", "note": f"Severity multiple {leakage['litigation_severity_multiple']:.2f}×", "tone": "red", "icon": "§"},
+        {"label": "Social inflation", "value": f"{leakage['social_inflation_pct_per_year']:+.1f}%", "note": f"Less {leakage['assumed_cpi_pct']:.1f}% assumed CPI", "tone": "cyan", "icon": "Δ"},
+    ])
+    with st.expander("Ask the AI Claims Analyst", expanded=manual_mode):
+        render_manual_track("claims")
+
+
+def render_policy() -> None:
+    if not bundle.documents:
+        st.warning("Policy Intelligence needs at least one PDF or TXT policy document.")
+        st.caption("Use Portfolio & data in the sidebar to add wordings.")
+        return
+    clauses = wording.extract_clauses(bundle.documents)
+    total_clauses = sum(clauses["counts"].values())
+    panel_header("Policy Document Intelligence", "Local regex and keyword retrieval: document → sentence → clause.", badge=f"{total_clauses} CLAUSES", tone="cyan", icon="▤")
+    with st.container(border=True):
+        search = st.text_input("Search policy wording", placeholder="coverage, limit, pollution, waiting period…")
+        categories = ["all", *clauses["clauses"]]
+        category = st.radio("Clause category", categories, horizontal=True, format_func=lambda value: value.replace("_", " ").title())
+    rows: list[dict[str, Any]] = []
+    if search.strip():
+        result = wording.search_wording(bundle.documents, search)
+        rows = [{"category": "keyword result", "document": hit["document"], "text": hit["text"], "amounts": re.findall(wording.MONEY, hit["text"], re.I)[:4]} for hit in result["hits"]]
+    else:
+        chosen = clauses["clauses"] if category == "all" else {category: clauses["clauses"][category]}
+        rows = [{"category": cat, "document": hit["document"], "text": hit["text"], "amounts": hit["amounts"]} for cat, hits in chosen.items() for hit in hits]
+    if not rows:
+        st.info("No sentence matched this search and category.")
+    else:
+        labels = [f"{row['category'].replace('_', ' ').title()} · {row['document']} · {row['text'][:64]}…" for row in rows]
+        selected_label = st.selectbox("Retrieved evidence", labels, label_visibility="collapsed")
+        selected_index = labels.index(selected_label)
+        selected = rows[selected_index]
+        left, right = st.columns([1, 1.52], gap="medium")
+        with left:
+            st.caption(f"RETRIEVED CLAUSES · {len(rows)} RESULT{'S' if len(rows) != 1 else ''}")
+            visible = [selected_index] + [index for index in range(len(rows)) if index != selected_index]
+            for index in visible[:6]:
+                row = rows[index]
+                clause_card(row["category"], row["document"], row["text"], row["amounts"], selected=index == selected_index)
+        with right:
+            panel_header("Extracted Evidence", "Exact source sentence used by the Policy Analyst.", badge="RETRIEVED", tone="green", icon="§")
+            evidence_detail(selected["category"], selected["document"], selected["text"], selected["amounts"])
+            if E is not None:
+                modeled = {"severity_p99": E["sev"]["p99"], "largest_claim": E["sev"]["max"], "expected_annual_loss": E["sim"]["gross"]["mean"], "var_99_5": E["sim"]["gross"]["var_99_5"]}
+                gaps = wording.coverage_gaps(bundle.documents, modeled)
+                with st.expander(f"Coverage gap checks · {gaps['gap_count']}"):
+                    if gaps["gaps"]:
+                        st.dataframe(pd.DataFrame(gaps["gaps"]), hide_index=True, width="stretch")
+                    else:
+                        st.success("No modeled limit or exclusion gap was identified by the deterministic checks.")
+                    st.caption(gaps["method"])
+    with st.expander("Ask the AI Policy Analyst", expanded=manual_mode):
+        render_manual_track("policy")
+
+
+def render_reinsurance() -> None:
+    if E is None:
+        st.warning("Reinsurance needs a valid claims table.")
+        return
+    rec = E["rec"]
+    recovery_pct = 100 * rec["expected_recovery"] / rec["gross_loss"] if rec["gross_loss"] else 0
+    metric_grid([
+        {"label": "Gross loss", "value": money(rec["gross_loss"]), "note": f"Largest claim {money(rec['largest_gross_claim'])}", "tone": "red", "icon": "↘"},
+        {"label": "Recovery", "value": money(rec["expected_recovery"]), "note": f"{recovery_pct:.1f}% of observed gross loss", "tone": "green", "icon": "⬡"},
+        {"label": "Net loss", "value": money(rec["net_loss"]), "note": f"Retention {money(rec['retention'])}", "tone": "amber", "icon": "◇"},
+        {"label": "Tail above layer", "value": money(rec["uncovered_above_layer"]), "note": f"{rec['claims_exhausting_layer']} claims exhausted", "tone": "cyan", "icon": "▤"},
+    ])
+    panel_header("Reinsurance Treaty Structure", rec["method"], badge="ACTIVE", tone="cyan", icon="⬡")
+    reinsurance_layers(rec, money=money)
+    left, right = st.columns(2, gap="medium")
+    with left:
+        panel_header("Observed Loss Flow", "Gross, retained, ceded and uncovered portions.", tone="red", icon="↘")
+        show(F.reinsurance_flow(rec))
+    with right:
+        panel_header("Retention Economics", "Total Cost of Risk across attachment points.", badge=f"OPT {money(E['sweep']['optimal_retention'])}", tone="green", icon="Δ")
+        show(F.tcor_curve(E["sweep"], params["retention"]))
+    left, right = st.columns(2, gap="medium")
+    with left:
+        panel_header("Programme Structures", "XoL, aggregate stop-loss and quota share.", tone="amber", icon="▥")
+        show(F.structures_bar(E["cmp"], E["qs"]))
+    with right:
+        panel_header("Recovery Calculation", "Observed claims under the selected layer.", badge="PYTHON", tone="green", icon="Σ")
+        risk_metric_list([
+            ("Gross observed loss", money(rec["gross_loss"]), "input"),
+            ("Retention", money(rec["retention"]), "per claim"),
+            ("Layer limit", money(rec["limit"]), "per claim"),
+            ("Expected recovery", money(rec["expected_recovery"]), "ceded"),
+            ("Net observed loss", money(rec["net_loss"]), "retained"),
+        ])
+    with st.expander("Retention sweep data"):
+        sheet(pd.DataFrame(E["sweep"]["sweep"]), "retention_sweep", ["retention", "limit", "reinsurance_premium", "expected_retained_loss", "capital_charge", "tcor", "expected_recovery"], 300)
+    with st.expander("Ask the AI Reinsurance Manager", expanded=manual_mode):
+        render_manual_track("reinsurance")
+
+
+def render_actuarial_engine() -> None:
+    if E is None:
+        st.warning("The Actuarial Engine needs a valid claims table.")
+        return
+    stats = E["sim"]["net_of_reinsurance"]
+    metric_grid([
+        {"label": "Mean annual loss", "value": money(stats["mean"]), "note": f"{E['sim']['paths']:,} seeded simulations", "tone": "green", "icon": "μ"},
+        {"label": "VaR 95%", "value": money(stats["var_95"]), "note": "Net of current reinsurance", "tone": "cyan", "icon": "95"},
+        {"label": "VaR 99.5%", "value": money(stats["var_99_5"]), "note": "Solvency capital basis", "tone": "amber", "icon": "99"},
+        {"label": "TVaR 99%", "value": money(stats["tvar_99"]), "note": "Mean beyond the 99th percentile", "tone": "red", "icon": "T"},
+    ])
+    left, right = st.columns([2.05, 1], gap="medium")
+    with left:
+        panel_header("Monte Carlo Simulation", "Poisson frequency × lognormal severity × per-claim XoL.", badge=f"{E['sim']['paths']:,} SIMS", tone="cyan", icon="∷")
+        show(F.aggregate_histogram(E["sim"], params["capital_held"]))
+    with right:
+        panel_header("Risk Measures", "From deterministic simulation output.", badge=E["sim"]["confidence_tier"].replace("_", " ").upper(), tone="red", icon="↗")
+        risk_metric_list([
+            ("Mean", money(stats["mean"]), "50% centre"),
+            ("VaR (95%)", money(stats["var_95"]), "95%"),
+            ("VaR (99%)", money(stats["var_99"]), "99%"),
+            ("VaR (99.5%)", money(stats["var_99_5"]), "SCR"),
+            ("TVaR (99%)", money(stats["tvar_99"]), "tail"),
+        ])
+    left, right = st.columns([2.05, 1], gap="medium")
+    with left:
+        panel_header("Loss Development Triangle", "Cumulative incurred loss by accident year and development age.", badge="CHAIN LADDER", tone="green", icon="Σ")
+        show(F.loss_triangle_heatmap(E["tri"]))
+    with right:
+        panel_header("Age-to-Ultimate Factors", "Volume-weighted development pattern.", badge="CDF", tone="amber", icon="↘")
+        factors = [(age, f"{factor:.4f}", f"to {age.split('-')[-1]}m") for age, factor in E["tri"]["age_to_age_factors"].items()]
+        risk_metric_list(factors)
+    with st.expander("Loss triangle values"):
+        triangle = pd.DataFrame(E["tri"]["triangle"]).T.reset_index(names="accident_year")
+        sheet(triangle, "loss_triangle", [column for column in triangle.columns if column != "accident_year"], 340)
+    panel_header("Model Components", "Frequency, severity, reserving and solvency assumptions.", badge="DETERMINISTIC", tone="green", icon="∑")
+    metric_grid([
+        {"label": "Frequency", "value": f"λ {E['freq']['poisson_lambda']:.2f}", "note": f"{E['freq']['distribution']} · trend {E['freq']['annual_trend_pct']:+.1f}%/yr", "tone": "cyan", "icon": "λ"},
+        {"label": "Severity", "value": money(E["sev"]["lognormal_mean"]), "note": f"σ {E['sev']['lognormal_sigma']:.2f} · {E['sev']['tail']} tail", "tone": "red", "icon": "Σ"},
+        {"label": "Chain-ladder IBNR", "value": money(E["tri"]["total_chain_ladder_ibnr"]), "note": "Volume-weighted age-to-age factors", "tone": "green", "icon": "CL"},
+        {"label": "SCR ratio", "value": f"{E['solv']['scr_ratio_pct']:.0f}%", "note": f"{E['solv']['status']} · own funds {money(E['solv']['own_funds'])}", "tone": "amber", "icon": "S"},
+    ])
+    left, right = st.columns(2, gap="medium")
+    with left:
+        panel_header("Reserve Development", "LDF IBNR and chain-ladder ultimate by year.", tone="green", icon="Σ")
+        show(F.ibnr_by_year(E["ibnr"], E["tri"]))
+    with right:
+        panel_header("Stress Scenarios", "Frequency and severity multipliers applied in Python.", tone="red", icon="⚠")
+        show(F.stress_bars(E["stress"]))
+    with st.expander("Ask an actuarial, capital or risk specialist", expanded=manual_mode):
+        specialist = st.selectbox("Specialist", ["actuary", "capital", "risk"], format_func=lambda key: TRACKS[key].name, key="actuarial_specialist")
+        render_manual_track(specialist)
+
+
+def render_audit() -> None:
+    result: CoreResult | None = st.session_state.get("core_result")
+    if result is None:
+        metric_grid([
+            {"label": "Core runs", "value": "0", "note": "Current browser session", "tone": "cyan", "icon": "◷"},
+            {"label": "PRISM", "value": "Connected" if tracing_enabled() else "Offline", "note": "Live model observability", "tone": "green" if tracing_enabled() else "amber", "icon": "P"},
+            {"label": "Claims loaded", "value": f"{claim_count:,}", "note": f"{len(bundle.sources)} source(s)", "tone": "cyan", "icon": "▥"},
+            {"label": "Approval", "value": "Human required", "note": "The agent never binds cover", "tone": "amber", "icon": "✓"},
+        ])
+        panel_header("Workflow Trace", "No Core analysis has run in this browser session.", badge="READY", tone="cyan", icon="◷")
+        workflow_trace(None, source_count=len(bundle.sources), claim_count=claim_count, traced=tracing_enabled())
+        st.info("Run a question from Dashboard to populate the detailed audit trail.")
+        return
+    grounding = result.grounding()
+    metric_grid([
+        {"label": "Run status", "value": "Complete", "note": result.session_id, "tone": "green", "icon": "✓"},
+        {"label": "Specialists", "value": f"{len(result.reports)}", "note": f"{sum(len(r.tool_calls) for r in result.reports.values())} tool calls", "tone": "cyan", "icon": "⌁"},
+        {"label": "Grounding", "value": f"{grounding['rate']:.0f}%", "note": f"{grounding['checked']} figures checked", "tone": "green" if grounding["grounded"] else "amber", "icon": "G"},
+        {"label": "Elapsed", "value": f"{sum(result.timings.values()):.1f}s", "note": f"Router {result.route.source} · {result.synthesis.get('_mode', 'deep')}", "tone": "amber", "icon": "◷"},
+    ])
+    panel_header("Current Model Run", result.question, badge="PRISM TRACED" if tracing_enabled() else "LOCAL", tone="green", icon="◷")
+    agent_rows = []
+    for key in result.route.active:
+        report = result.reports.get(key)
+        if report:
+            agent_rows.append({"specialist": report.name, "status": "error" if report.error else "complete", "seconds": round(report.seconds, 2), "tool_calls": len(report.tool_calls), "tools": ", ".join(report.tool_names) or "none", "error": report.error})
+    st.dataframe(pd.DataFrame(agent_rows), hide_index=True, width="stretch")
+    panel_header("Detailed Trace", "Actual run stages and measured latency.", badge=result.session_id, tone="cyan", icon="▤")
+    workflow_trace(result, source_count=len(bundle.sources), claim_count=claim_count, traced=tracing_enabled())
+    panel_header("Specialist Evidence", "Model reports and deterministic tool results.", badge=f"{len(result.reports)} REPORTS", tone="green", icon="§")
+    for key in result.route.active:
+        report = result.reports.get(key)
+        if not report:
+            continue
+        with st.expander(f"{report.name} · {report.seconds:.1f}s · {len(report.tool_calls)} tools" + (f" · {report.error}" if report.error else "")):
+            st.markdown(md(report.text) or f"_{report.error or 'No output'}_")
+            if report.tool_calls:
+                st.dataframe(pd.DataFrame([{"tool": call["name"], "seconds": round(call.get("seconds", 0), 3), "arguments": str(call.get("args", {})), "result_preview": str(call.get("result", ""))[:240]} for call in report.tool_calls]), hide_index=True, width="stretch")
+    with st.expander("Computed truth sent to PRISM"):
+        st.json(result.metadata)
+    with st.expander("Human review gate"):
+        st.warning("Review the evidence before changing reserves, capital, policy wording, or reinsurance. This run is advisory and does not bind cover.")
+
+
+if page == "Dashboard":
+    render_dashboard()
+elif page == "Claims Analysis":
+    render_claims()
+elif page == "Policy Intelligence":
+    render_policy()
+elif page == "Reinsurance":
+    render_reinsurance()
+elif page == "Actuarial Engine":
+    render_actuarial_engine()
 else:
-    tab_names = ["Overview"] + [t.name for t in TRACKS.values()]
-    tabs = st.tabs(tab_names)
-
-    with tabs[0]:
-        if E is None:
-            st.warning("No claims table loaded — the overview needs claims data.")
-        else:
-            df = bundle.claims
-            ibnr, rec, intel, solv = E["ibnr"], E["rec"], E["intel"], E["solv"]
-            st.subheader("Portfolio overview")
-            c1, c2, c3, c4, c5 = st.columns(5)
-            c1.metric("Portfolio loss (reported)", money(ibnr["portfolio_loss"]))
-            c2.metric("IBNR (LDF)", money(ibnr["ibnr"]), help=f"chain-ladder triangle IBNR {money(E['tri']['total_chain_ladder_ibnr'])}")
-            c3.metric("Expected recovery", money(rec["expected_recovery"]), help=rec["method"])
-            c4.metric("Net exposure", money(ibnr["ultimate_loss"] - rec["expected_recovery"]))
-            c5.metric("SCR ratio", f"{solv['scr_ratio_pct']:.0f}%", delta=solv["status"], delta_color="normal" if solv["status"] in ("adequate", "strong") else "inverse")
-            st.caption(f"{intel['claim_count']:,} claims · accident years {min(intel['severity_by_year'])}–{max(intel['severity_by_year'])} · "
-                       f"λ {E['freq']['poisson_lambda']}/yr ({E['freq']['distribution']}) · severity σ {E['sev']['lognormal_sigma']} ({E['sev']['tail']} tail) · "
-                       f"paid to date {money_md(ibnr['paid_to_date'])} · case reserves {money_md(ibnr['case_reserves'])}")
-
-            st.subheader("Claims intelligence")
-            sev = intel["severity_change_pct"]
-            w1, w2, w3, w4 = st.columns(4)
-            w1.metric(f"{'⚠️ ' if abs(sev) >= 10 else ''}Severity trend ({intel['latest_year']})", f"{sev:+.1f}%", delta=f"{money_md(intel['latest_year_mean_severity'])} vs {money_md(intel['prior_years_mean_severity'])}", delta_color="inverse")
-            w2.metric("⚠️ Anomalous claims" if intel["anomaly_count"] else "Anomalous claims", f"{intel['anomaly_count']}", delta=f"{intel['anomaly_rate_pct']:.1f}% · {money_md(intel['anomalous_amount_total'])}", delta_color="off")
-            w3.metric("Claims leakage", f"{E['leak']['leakage_rate_pct']}%", delta=f"{E['leak']['overpaid_claim_count']} overpaid · {money_md(E['leak']['leakage_total'])}", delta_color="off")
-            w4.metric("Litigation rate", f"{E['leak']['litigation_rate_pct']}%", delta=f"severity x{E['leak']['litigation_severity_multiple']} · social inflation {E['leak']['social_inflation_pct_per_year']:+.1f}%/yr", delta_color="off")
-
-            g1, g2, g3, g4, g5, g6 = st.tabs(["Reserving", "Claims", "Reinsurance", "Capital & risk", "Exposure", "Data sheets"])
-            with g1:
-                c1, c2 = st.columns(2)
-                with c1: show(F.ibnr_by_year(ibnr, E["tri"]))
-                with c2: show(F.frequency_severity_by_year(E["freq"], df))
-                show(F.loss_triangle_heatmap(E["tri"]))
-                sheet(pd.DataFrame(E["tri"]["by_accident_year"]), "chain_ladder_by_year", ["reported_to_date", "chain_ladder_ultimate", "ibnr"], 220)
-            with g2:
-                c1, c2 = st.columns(2)
-                with c1: show(F.severity_trend(intel))
-                with c2: show(F.development_curve(E["devp"]))
-                c1, c2 = st.columns(2)
-                with c1: show(F.leakage_bars(E["leak"]))
-                with c2: show(F.loss_by_line(df))
-                st.markdown("**Top anomalous claims** (Isolation Forest)")
-                sheet(anomaly_table(df, 12), "anomalous_claims", ["claim_amount", "reported_amount", "paid_amount", "reserve"])
-            with g3:
-                show(F.reinsurance_flow(rec))
-                c1, c2 = st.columns(2)
-                with c1: show(F.tcor_curve(E["sweep"], params["retention"]))
-                with c2: show(F.structures_bar(E["cmp"], E["qs"]))
-                sheet(pd.DataFrame(E["sweep"]["sweep"]), "retention_sweep", ["retention", "limit", "reinsurance_premium", "expected_retained_loss", "retained_var_99_5", "capital_charge", "tcor", "expected_recovery"], 240)
-            with g4:
-                c1, c2 = st.columns([1, 2])
-                with c1: show(F.solvency_gauge(solv))
-                with c2: show(F.aggregate_histogram(E["sim"], params["capital_held"]))
-                show(F.stress_bars(E["stress"]))
-                a = E["adq"]
-                st.caption(f"Shortfall probability {a['shortfall_probability_pct']}% · capital required at 99.5% {money_md(a['capital_required_99_5'])} · surplus/deficit {money_md(a['capital_surplus_or_deficit'])}")
-            with g5:
-                c1, c2 = st.columns(2)
-                with c1: show(F.exposure_vs_loss(E["expo"]))
-                with c2: show(F.emerging_signals_bars(E["emerg"]))
-                sheet(pd.DataFrame(E["expo"]["by_line"]), "exposure_by_line", ["exposure", "loss"], 200)
-            with g6:
-                st.markdown("**Claims (filterable)**")
-                lobs = sorted(df["line_of_business"].unique())
-                f1, f2 = st.columns(2)
-                pick_lob = f1.multiselect("Line of business", lobs, default=lobs)
-                yrs = sorted(df["accident_year"].unique())
-                pick_yr = f2.slider("Accident year", int(min(yrs)), int(max(yrs)), (int(min(yrs)), int(max(yrs))))
-                view = df[df["line_of_business"].isin(pick_lob) & df["accident_year"].between(*pick_yr)]
-                sheet(view, "claims_filtered", ["claim_amount", "reported_amount", "paid_amount", "reserve", "exposure"], 380)
-                st.markdown("**IBNR by accident year (LDF)**")
-                sheet(pd.DataFrame(ibnr["by_accident_year"]), "ibnr_by_year", ["reported", "ultimate", "ibnr"], 220)
-                if bundle.documents:
-                    st.markdown("**Policy clauses**")
-                    cl = wording.extract_clauses(bundle.documents)
-                    rows = [{"category": c, "document": h["document"], "clause": h["text"], "amounts": ", ".join(h["amounts"])} for c, hs in cl["clauses"].items() for h in hs]
-                    sheet(pd.DataFrame(rows), "policy_clauses", None, 260)
-
-    def render_track(track_key: str) -> None:
-        track = TRACKS[track_key]
-        st.markdown(f"**{track.name}** — {track.blurb}")
-        ready = has_claims if track.needs == "claims" else bool(bundle.documents)
-        if not ready:
-            st.warning("Needs claims data." if track.needs == "claims" else "Needs at least one policy document (PDF/TXT)."); return
-        if not api_key_available():
-            st.warning("`NVIDIA_API_KEY` is not set in `.env`."); return
-        q_key = f"q_{track_key}"
-        if q_key not in st.session_state:
-            st.session_state[q_key] = track.default_question
-
-        def _pick(k: str = track_key) -> None:
-            st.session_state[f"q_{k}"] = st.session_state[f"pick_{k}"]
-
-        st.selectbox("Example questions", track.example_questions, key=f"pick_{track_key}", on_change=_pick)
-        question = st.text_area("Question", key=q_key, height=70)
-        state_key = f"result_{track_key}"
-        if st.button(f"Run {track.name}", type="primary", key=f"run_{track_key}"):
-            session_id = new_session_id(track_key)
-            with st.spinner(f"{track.name} is working ({model_name()})…"):
-                try:
-                    tools = track.build_tools(bundle, params)
-                    meta = {"track": track_key, **track.metadata(bundle, params)}
-                    with analysis_run(session_id, meta):
-                        text, calls = run_agent(track.system_prompt, question, tools, run_name=f"{track_key}_track")
-                    from src.core.synthesizer import strip_scratchpad
-                    st.session_state[state_key] = {"text": strip_scratchpad(text), "calls": calls, "session": session_id, "meta": meta}
-                except Exception as e:
-                    st.error(f"{track.name} failed: {e}")
-        if state_key in st.session_state:
-            r = st.session_state[state_key]
-            st.info(md(r["text"]) or "_(empty answer — try again)_", icon="📐")
-            st.caption("Tools called: " + (", ".join(c["name"] for c in r["calls"]) or "none") + (f" · PRISM session `{r['session']}`" if tracing_enabled() else ""))
-            with st.expander("Computed figures sent to PRISM as truth (metadata)"):
-                st.json(r["meta"])
-
-    for i, key in enumerate(TRACKS, start=1):
-        with tabs[i]:
-            render_track(key)
+    render_audit()

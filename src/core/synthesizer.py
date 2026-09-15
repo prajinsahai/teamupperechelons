@@ -30,19 +30,11 @@ You will receive raw analytical reports from up to 4 specialized sub-agents, plu
 2. TONE: Ruthlessly objective, highly technical, and institutional.
 3. CONFLICT RESOLUTION: If sub-agents provide conflicting perspectives, explicitly highlight this tension as a "Strategic Risk Friction".
 4. FORMATTING: Use Markdown for the text summary. Use bolding for key financial figures. Structure: a one-paragraph answer, then "Key findings" bullets, then "Recommended actions" bullets, then "Strategic Risk Friction" (or "None identified"), then "Confidence & caveats".
-5. LENGTH: 180-320 words.
+5. LENGTH: 120-220 words. Be direct and do not repeat the reports.
 </strict_rules>
 
-<processing_pipeline>
-Before generating your final response, you MUST think through your synthesis inside a <scratchpad> block.
-1. List the active agents.
-2. Extract key metrics.
-3. Note conflicts.
-4. Draft narrative flow.
-</processing_pipeline>
-
 <output_schema>
-After your <scratchpad>, output ONLY a valid JSON object matching this exact schema. Do not include markdown code block formatting.
+Output ONLY a valid JSON object matching this exact schema. Do not include scratchpad text or markdown code block formatting.
 {
   "executive_summary": "The full markdown-formatted synthesized response.",
   "active_agents_cited": ["Agent1", "Agent2"],
@@ -85,9 +77,90 @@ def parse_synthesis(text: str) -> dict[str, Any]:
     return data
 
 
+_SECTION_NAMES = {
+    "FINDINGS": "findings",
+    "RECOMMENDATION": "recommendation",
+    "RECOMMENDATIONS": "recommendation",
+    "CONFIDENCE & CAVEATS": "confidence",
+    "CONFIDENCE AND CAVEATS": "confidence",
+}
+
+
+def _heading(line: str) -> str | None:
+    clean = re.sub(r"[#*_`]", "", line).strip().rstrip(":").strip().upper()
+    return _SECTION_NAMES.get(clean)
+
+
+def _section_lines(text: str, wanted: str, limit: int) -> list[str]:
+    """Extract complete report bullets without changing any model-supplied figures."""
+    active = False
+    out: list[str] = []
+    for raw in strip_scratchpad(text).splitlines():
+        line = raw.strip()
+        section = _heading(line)
+        if section is not None:
+            active = section == wanted
+            continue
+        if not active or not line:
+            continue
+        if wanted == "findings" and ("data loaded:" in line.lower() or "claims.csv" in line.lower() and "rows" in line.lower()):
+            continue
+        out.append(line if line.startswith(("-", "*")) else f"- {line}")
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _fallback_lines(text: str, limit: int = 2) -> list[str]:
+    lines: list[str] = []
+    for raw in strip_scratchpad(text).splitlines():
+        line = raw.strip()
+        if not line or _heading(line) is not None:
+            continue
+        lines.append(line if line.startswith(("-", "*")) else f"- {line}")
+        if len(lines) >= limit:
+            break
+    return lines
+
+
+def rapid_synthesis(question: str, reports: dict[str, str]) -> dict[str, Any]:
+    """Build an immediate grounded brief from completed model reports, with no extra LLM call.
+
+    The sub-agents have already interpreted the tool output. This function only selects
+    their complete findings and recommendations, so it adds no actuarial calculations or
+    invented figures and normally completes in under a millisecond.
+    """
+    blocks = [
+        "The routed specialists completed their tool-grounded analysis. "
+        "Their decision points are consolidated below.",
+    ]
+    for name, report in reports.items():
+        findings = _section_lines(report, "findings", 2)
+        actions = _section_lines(report, "recommendation", 1)
+        selected = findings + actions
+        if not selected:
+            selected = _fallback_lines(report)
+        blocks.extend((f"### {name.replace('_', ' ')}", "\n".join(selected) or "- No displayable report was returned."))
+    return {
+        "executive_summary": "\n\n".join(blocks),
+        "active_agents_cited": list(reports),
+        "strategic_risk_friction": "",
+        "key_figures": {},
+        "_parse": "rapid",
+        "_mode": "rapid",
+        "_question": question,
+        "_raw": "",
+    }
+
+
 def synthesize(question: str, objective: str, reports: dict[str, str]) -> dict[str, Any]:
-    """reports: {agent display name: report text (scratchpad already stripped)}."""
-    llm = make_llm(temperature=0.15, max_tokens=7000)  # scratchpad + ~300-word JSON; 3000 truncated
+    """Optional deep synthesis, bounded so it cannot hold the UI for several minutes."""
+    llm = make_llm(
+        temperature=0.1,
+        max_tokens=4096,
+        request_timeout=45,
+        max_retries=0,
+    )
     parts = [f"USER QUESTION:\n{question}", f"ROUTER OBJECTIVE:\n{objective or '(none)'}"]
     for name, text in reports.items():
         parts.append(f"=== REPORT FROM {name} ===\n{text}")
@@ -97,11 +170,9 @@ def synthesize(question: str, objective: str, reports: dict[str, str]) -> dict[s
     raw = resp.content if isinstance(resp.content, str) else str(resp.content)
     out = parse_synthesis(raw)
     if not out["executive_summary"].strip():
-        # reasoning budget exhausted: one nudge without the scratchpad requirement
-        resp = llm.invoke([SystemMessage(SYNTH_PROMPT), HumanMessage("\n\n".join(parts)),
-                           HumanMessage("Output the JSON object now. Skip the scratchpad.")],
-                          config={**config, "run_name": "core_synthesizer_retry"})
-        raw = resp.content if isinstance(resp.content, str) else str(resp.content)
-        out = parse_synthesis(raw)
+        out = rapid_synthesis(question, reports)
+        out["_error"] = "Deep synthesizer returned an empty response; rapid brief used."
+    else:
+        out["_mode"] = "deep"
     out["_raw"] = raw
     return out

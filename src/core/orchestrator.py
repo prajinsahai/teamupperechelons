@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from src.core.router import KEY_TO_AGENT, Route, route
-from src.core.synthesizer import strip_scratchpad, synthesize
+from src.core.synthesizer import rapid_synthesis, strip_scratchpad, synthesize
 from src.data.ingest import DataBundle
 from src.eval.grounding import grounding
 from src.llm.agent import run_agent
@@ -132,6 +132,7 @@ def run_core(
     use_llm_router: bool = True,
     max_workers: int = 4,
     agent_budget_s: float = AGENT_BUDGET_S,
+    deep_synthesis: bool = False,
 ) -> CoreResult:
     """Full auto-mode run. Call inside `analysis_run(session_id, ...)` so it is traced."""
     notify = on_update or (lambda phase, st: None)
@@ -173,18 +174,21 @@ def run_core(
     result.timings["processing"] = time.time() - t0
 
     # 3. synthesize (span carries the union of computed_* truth values)
-    notify("synthesizing", statuses)
+    notify("synthesizing" if deep_synthesis else "assembling", statuses)
     t0 = time.time()
     result.metadata, result.metadata_errors = core_metadata(bundle, params, rt.active, result.reports)
+    result.metadata["synthesis_mode"] = "deep" if deep_synthesis else "rapid"
     good = {KEY_TO_AGENT[k]: r.text for k, r in result.reports.items() if r.text}
     if good:
-        try:
-            with with_metadata(result.metadata):
-                result.synthesis = synthesize(question, rt.objective, good)
-        except Exception as e:
-            first = next(iter(good.values()))
-            result.synthesis = {"executive_summary": first, "active_agents_cited": list(good), "strategic_risk_friction": "",
-                                "key_figures": {}, "_parse": "fallback", "_error": str(e)[:300]}
+        if deep_synthesis:
+            try:
+                with with_metadata(result.metadata):
+                    result.synthesis = synthesize(question, rt.objective, good)
+            except Exception as e:
+                result.synthesis = rapid_synthesis(question, good)
+                result.synthesis["_error"] = f"Deep synthesis unavailable; rapid brief used: {e}"[:300]
+        else:
+            result.synthesis = rapid_synthesis(question, good)
     else:
         result.synthesis = {"executive_summary": "No sub-agent produced a report.", "active_agents_cited": [], "strategic_risk_friction": "",
                             "key_figures": {}, "_parse": "none"}

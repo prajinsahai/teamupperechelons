@@ -116,6 +116,7 @@ def main() -> int:
     ap.add_argument("--tag", required=True)
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--keyword-router", action="store_true")
+    ap.add_argument("--deep-synthesis", action="store_true", help="benchmark the optional extra NIM synthesis call")
     ap.add_argument("--only", default=None, help="comma-separated case ids")
     args = ap.parse_args()
 
@@ -131,7 +132,8 @@ def main() -> int:
             sid = f"cohort-{args.tag}-{case['id']}-r{rep}"
             t0 = time.time()
             with analysis_run(sid, {"mode": "auto", "cohort": args.tag, "case": case["id"], "repeat": rep}, blocking=True):
-                res = run_core(case["question"], bundles[slug], samples[slug]["programme"], sid, use_llm_router=not args.keyword_router)
+                res = run_core(case["question"], bundles[slug], samples[slug]["programme"], sid,
+                               use_llm_router=not args.keyword_router, deep_synthesis=args.deep_synthesis)
             rec = score_one(case, res, golden_truth(slug), time.time() - t0)
             runs.append(rec)
             print(f"[{time.time()-started:5.0f}s] {case['id']:22s} r{rep} route={rec['route_source']:8s} {','.join(rec['routed']):40s} "

@@ -23,53 +23,54 @@ HUB = (50, 50)
 
 CSS = """
 <style>
-  .magi { position: relative; width: 100%; aspect-ratio: 16 / 8.6; background: #060a12; border: 2px solid #b45309;
-          font-family: "Segoe UI", Consolas, monospace; color: #f59e0b; overflow: hidden; box-sizing: border-box; }
+  .magi { position: relative; width: 100%; aspect-ratio: 16 / 8.6; background: #080d1b; border: 1px solid rgba(137,159,204,.24); border-radius: 14px;
+          font-family: "Segoe UI", Consolas, monospace; color: #8390ad; overflow: hidden; box-sizing: border-box;
+          box-shadow: inset 0 0 70px rgba(53,199,255,.025); }
   .magi svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; }
   .node { position: absolute; transform: translate(-50%, -50%); box-sizing: border-box; display: flex; flex-direction: column;
-          align-items: center; justify-content: center; background: #38bdf8; color: #06131f; border: 3px solid #0F172A;
+          align-items: center; justify-content: center; background: #35c7ff; color: #06131f; border: 2px solid #0F172A; border-radius: 8px;
           font-weight: 800; letter-spacing: 0.06em; text-align: center; transition: all .3s ease; }
   .node .lbl { font-size: clamp(9px, 1.55vw, 18px); line-height: 1.1; }
   .node .sub { font-size: clamp(7px, 0.9vw, 11px); font-weight: 600; opacity: .8; margin-top: 3px; }
-  .node.idle { background: #0e2a3a; color: #7aa7c2; border-color: #0F172A; }
-  .node.skipped { background: #0a1a26; color: #3f5a6d; border-color: #0F172A; opacity: .55; }
+  .node.idle { background: #101b31; color: #8390ad; border-color: rgba(137,159,204,.18); }
+  .node.skipped { background: #0b1324; color: #586581; border-color: rgba(137,159,204,.1); opacity: .55; }
   .node.running { animation: magi-strobe 1.1s infinite; }
-  .node.done { background: #22c55e; color: #052e16; border-color: #00E5FF; box-shadow: 0 0 14px rgba(0,229,255,.55); }
+  .node.done { background: #37e8c2; color: #031611; border-color: #35c7ff; box-shadow: 0 0 14px rgba(53,199,255,.5); }
   .node.error { background: #7f1d1d; color: #fee2e2; border-color: #ef4444; }
   @keyframes magi-strobe {
-    0%   { background: #00E5FF; border-color: #00E5FF; box-shadow: 0 0 16px rgba(0,229,255,.75), inset 0 0 10px rgba(0,229,255,.25); color:#06131f; }
-    50%  { background: #22c55e; border-color: #22c55e; box-shadow: 0 0 16px rgba(34,197,94,.75),  inset 0 0 10px rgba(34,197,94,.25);  color:#052e16; }
-    100% { background: #00E5FF; border-color: #00E5FF; box-shadow: 0 0 16px rgba(0,229,255,.75), inset 0 0 10px rgba(0,229,255,.25); color:#06131f; }
+    0%   { background: #35c7ff; border-color: #35c7ff; box-shadow: 0 0 16px rgba(53,199,255,.7), inset 0 0 10px rgba(53,199,255,.25); color:#06131f; }
+    50%  { background: #37e8c2; border-color: #37e8c2; box-shadow: 0 0 16px rgba(55,232,194,.7), inset 0 0 10px rgba(55,232,194,.25); color:#031611; }
+    100% { background: #35c7ff; border-color: #35c7ff; box-shadow: 0 0 16px rgba(53,199,255,.7), inset 0 0 10px rgba(53,199,255,.25); color:#06131f; }
   }
   .hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 22%; height: 16%;
-         background: #060a12; border: 3px solid #f59e0b; display: flex; align-items: center; justify-content: center;
-         font-size: clamp(14px, 2.6vw, 34px); font-weight: 900; letter-spacing: .12em; color: #f59e0b; z-index: 2; }
+         background: #0c1629; border: 2px solid #37e8c2; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+         font-size: clamp(14px, 2.6vw, 34px); font-weight: 900; letter-spacing: .12em; color: #37e8c2; z-index: 2; }
   .hub.busy { animation: hub-pulse 1.1s infinite; }
-  @keyframes hub-pulse { 0%,100% { box-shadow: 0 0 0 rgba(245,158,11,0);} 50% { box-shadow: 0 0 22px rgba(245,158,11,.7);} }
+  @keyframes hub-pulse { 0%,100% { box-shadow: 0 0 0 rgba(55,232,194,0);} 50% { box-shadow: 0 0 22px rgba(55,232,194,.55);} }
   .corner { position: absolute; font-size: clamp(8px, 1vw, 12px); line-height: 1.25; z-index: 3; }
   .corner.tl { left: 1.2%; top: 2%; } .corner.tr { right: 1.2%; top: 2%; text-align: right; }
   .corner.bl { left: 1.2%; bottom: 2%; } .corner.br { right: 1.2%; bottom: 2%; text-align: right; }
-  .corner .big { font-size: clamp(11px, 1.6vw, 20px); font-weight: 900; letter-spacing: .1em; }
-  .rule { border-top: 1px solid #16a34a; margin: 2px 0; opacity: .7; }
-  .tag { display: inline-block; border: 2px solid #38bdf8; color: #38bdf8; padding: 0 6px; font-weight: 800; letter-spacing: .15em; font-size: clamp(8px, 1.1vw, 13px); }
+  .corner .big { color:#37e8c2; font-size: clamp(11px, 1.6vw, 20px); font-weight: 900; letter-spacing: .1em; }
+  .rule { border-top: 1px solid #37e8c2; margin: 2px 0; opacity: .55; }
+  .tag { display: inline-block; border: 1px solid #35c7ff; border-radius:5px; color: #35c7ff; padding: 2px 7px; font-weight: 800; letter-spacing: .15em; font-size: clamp(8px, 1.1vw, 13px); }
 </style>
 """
 
-PHASE_LABEL = {"idle": "STANDBY", "routing": "ROUTING", "processing": "PROCESSING", "synthesizing": "SYNTHESIZING", "complete": "RESOLVED"}
+PHASE_LABEL = {"idle": "STANDBY", "routing": "ROUTING", "processing": "PROCESSING", "assembling": "ASSEMBLING", "synthesizing": "SYNTHESIZING", "complete": "RESOLVED"}
 
 
 def render_magi(statuses: dict[str, str], phase: str = "idle", session_id: str = "", mode: str = "AUTO", objective: str = "") -> str:
     """Return the HTML for the panel."""
     wires = []
     for key, label, n, (x, y), (w, h) in NODES:
-        col = {"running": "#00E5FF", "done": "#22c55e", "error": "#ef4444"}.get(statuses.get(key, "idle"), "#b45309")
+        col = {"running": "#35c7ff", "done": "#37e8c2", "error": "#ff5277"}.get(statuses.get(key, "idle"), "#253654")
         wires.append(f'<line x1="{HUB[0]}" y1="{HUB[1]}" x2="{x}" y2="{y}" stroke="{col}" stroke-width="1.1" vector-effect="non-scaling-stroke" opacity="0.95"/>')
     boxes = []
     for key, label, n, (x, y), (w, h) in NODES:
         st = statuses.get(key, "idle")
         sub = {"running": "ANALYSING", "done": "COMPLETE", "error": "ERROR", "skipped": "NOT ROUTED", "idle": "STANDBY"}[st]
         boxes.append(f'<div class="node {st}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%;"><div class="lbl">{label} · {n}</div><div class="sub">{sub}</div></div>')
-    busy = "busy" if phase in ("routing", "processing", "synthesizing") else ""
+    busy = "busy" if phase in ("routing", "processing", "assembling", "synthesizing") else ""
     active = sum(1 for s in statuses.values() if s in ("running", "done"))
     obj = (objective or "").replace("<", "&lt;")[:90]
     html = f"""{CSS}
