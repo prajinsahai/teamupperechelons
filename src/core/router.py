@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.llm.config import make_llm
+from src.prism.tracing import callbacks as prism_callbacks
 
 AGENT_KEYS = {"Actuary": "actuary", "Claims_Analyst": "claims", "Reinsurance_Manager": "reinsurance",
               "Capital_Manager": "capital", "Risk_Manager": "risk", "Policy_Analyst": "policy"}
@@ -71,7 +72,9 @@ def route(question: str, has_documents: bool, use_llm: bool = True) -> Route:
     try:
         model = os.environ.get("NVIDIA_ROUTER_MODEL")  # optional fast model
         llm = make_llm(temperature=0.0, model=model, max_tokens=2000)  # reasoning tokens count; 400 returned nothing
-        resp = llm.invoke([SystemMessage(ROUTER_PROMPT), HumanMessage(question)])
+        # PRISM: traced as its own run inside the caller's session (see src/prism/tracing.py)
+        resp = llm.invoke([SystemMessage(ROUTER_PROMPT), HumanMessage(question)],
+                          config={"callbacks": prism_callbacks(), "run_name": "core_router"})
         raw = resp.content if isinstance(resp.content, str) else str(resp.content)
         data = _parse_route(raw)
         nodes = [n for n in data.get("active_nodes", []) if n in AGENT_KEYS]

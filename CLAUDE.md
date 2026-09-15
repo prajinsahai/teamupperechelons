@@ -200,7 +200,7 @@ tests/
 This project sends traces to PRISM. Env vars: `PRISMTRACE_API_KEY`,
 `PRISMTRACE_PROJECT_ID`, `PRISMTRACE_HOST`.
 
-Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `src/core/orchestrator.py` (one session per Core question; router, each parallel sub-agent and the synthesizer are traced runs inside it), `src/core/router.py` and `src/core/synthesizer.py` (plain invokes — inherit the ambient session), `app.py` (`analysis_run` around every Core run and every manual track run), `src/core/run.py` and `src/tracks/run.py` (CLI runners), `src/prism/smoke.py` (staging live-trace path)
+Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `src/core/orchestrator.py` (one session per Core question; router, each parallel sub-agent and the synthesizer are traced runs inside it), `src/core/router.py` (`core_router` run, callbacks on the invoke) and `src/core/synthesizer.py` (`core_synthesizer` run, callbacks on the invoke — an invoke WITHOUT callbacks is untraced even inside a session), `app.py` (`analysis_run` around every Core run and every manual track run), `src/core/run.py` and `src/tracks/run.py` (CLI runners), `src/prism/smoke.py` (staging live-trace path)
 
 **Standing rule.** Whenever you add or change an agent, chain, graph, tool,
 retriever, or any entry point that calls a model, wire it to PRISM before you

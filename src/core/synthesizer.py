@@ -15,6 +15,7 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.llm.config import make_llm
+from src.prism.tracing import callbacks as prism_callbacks
 
 SYNTH_PROMPT = """<system_role>
 You are the bizmax Core Executive Synthesizer, an elite financial orchestration AI. You act as the Chief Risk Officer summarizing highly technical actuarial and risk data for a C-suite audience.
@@ -90,13 +91,16 @@ def synthesize(question: str, objective: str, reports: dict[str, str]) -> dict[s
     parts = [f"USER QUESTION:\n{question}", f"ROUTER OBJECTIVE:\n{objective or '(none)'}"]
     for name, text in reports.items():
         parts.append(f"=== REPORT FROM {name} ===\n{text}")
-    resp = llm.invoke([SystemMessage(SYNTH_PROMPT), HumanMessage("\n\n".join(parts))])
+    # PRISM: traced as its own run inside the caller's session (see src/prism/tracing.py)
+    config = {"callbacks": prism_callbacks(), "run_name": "core_synthesizer"}
+    resp = llm.invoke([SystemMessage(SYNTH_PROMPT), HumanMessage("\n\n".join(parts))], config=config)
     raw = resp.content if isinstance(resp.content, str) else str(resp.content)
     out = parse_synthesis(raw)
     if not out["executive_summary"].strip():
         # reasoning budget exhausted: one nudge without the scratchpad requirement
         resp = llm.invoke([SystemMessage(SYNTH_PROMPT), HumanMessage("\n\n".join(parts)),
-                           HumanMessage("Output the JSON object now. Skip the scratchpad.")])
+                           HumanMessage("Output the JSON object now. Skip the scratchpad.")],
+                          config={**config, "run_name": "core_synthesizer_retry"})
         raw = resp.content if isinstance(resp.content, str) else str(resp.content)
         out = parse_synthesis(raw)
     out["_raw"] = raw

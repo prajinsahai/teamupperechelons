@@ -54,6 +54,13 @@ class ActuaryTraceHandler(PRISMtraceCallbackHandler):
             kwargs["metadata"] = {**ambient, **(kwargs.get("metadata") or {})}
         super()._start_span(name, span_type, run_id, *args, **kwargs)
 
+    def on_chat_model_start(self, serialized: dict, messages: list, *, run_id: Any, parent_run_id: Any = None, **kwargs: Any) -> None:
+        # Honour LangChain's `run_name` so the router / synthesizer read as
+        # core_router / core_synthesizer in PRISM instead of the class name.
+        if kwargs.get("name"):
+            serialized = {**(serialized or {}), "name": kwargs["name"]}
+        super().on_chat_model_start(serialized, messages, run_id=run_id, parent_run_id=parent_run_id, **kwargs)
+
     def _flush_run(self, root_id: str, discard: bool = False) -> bool:
         if _blocking_flush.get():
             return super()._flush_run(root_id, discard)
