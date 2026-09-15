@@ -1162,6 +1162,74 @@
    "wall_s": 342.9,
    "session_id": "cohort-baseline-ter_reinsurance-r1",
    "summary": "The current per-occurrence XoL 5,000,000 xs 500,000 is not right-sized for weather-driven volatility. Weather_delay dominates weather risk with exposure $443,114,000.0 and loss $27,948,719.0, share_of_loss_pct 32.7, and a red severity signal severity_change_pct 49.4 on a rising frequency trend annual_trend_pct 8.8%. Capital is inadequate for the tail: capital_held $5,500,000 vs capital_required_99_5 $21,495,320.76, deficit -$15,995,320.76, with gross VaR99 $20,252,294.23 and net VaR99 $14,947,301.5 under the current programme. Stress catastrophe_freq_x2_sev_x1.5 lifts expected annual loss to $37,276,035.75 from baseline $12,425,345.25, and the 1-in-200 capital test fails with shortfall_probability_pct 99.984%.\n\nKey findings\n- Frequency is overdispersed and rising: Poisson lambda 75.0 claims/year, dispersion ratio 20.489, annual_trend_pct 8.8%; severity is heavy-tailed with empirical_mean $162,925.66, p99 $950,695.96, max $1,997,720.0.\n- Weather_delay is the dominant weather volatility line: exposure $443,114,000.0, loss $27,948,719.0, claims 157, share_of_loss_pct 32.7, severity_change_pct 49.4, frequency_change_pct 0.4, recent_claims_per_year 22.5, exposure_yoy_pct 97.3.\n- Current XoL provides limited benefit: gross mean $12,432,260.53, net mean $10,540,683.17, expected_recovery $1,891,577.36; historical claims in layer 31, claims exhausting layer 0, largest gross claim $1,997,720.0 well below limit.\n- Capital and tail mismatch: capital_held $5,500,000 vs capital_required_99_5 $21,495,320.76, deficit -$15,995,320.76; net VaR99.5 $15,539,407.84; IBNR $35,603,049.38, ultimate_loss $122,176,989.38.\n- TCoR comparison: per-occurrence XoL TCoR $13,494,210.58 with premium $2,553,629.44; aggregate stop-loss TCoR $12,771,278.25 with premium $671,572.62, TCoR difference $722,932.33.\n\nRecommended actions\n- Increase weather-related aggregate protection and/or limit protection for weather_delay; re-price with indicated_annual_premium $16,774,216.09 vs expected_annual_loss $12,425,345.25.\n- Move primary weather volatility protection to aggregate stop-loss attaching at p75 of gross annual loss, retaining per-occurrence XoL for tail protection.\n- Raise gross capital or purchase additional reinsurance to close the $15,995,320.76 deficit at 99.5% VaR and review retention and reinstatement provisions given frequency trend and severity tail.\n- Tighten weather_delay monitoring and pricing for severity drift and test programme against a weather-specific aggregate scenario.\n\nStrategic Risk Friction\nReinsurance_Manager TCoR optimisation favours raising retention toward $1,959,000 to reduce TCoR from $13,494,210.58 toward $13,098,630.17, while Actuary and Risk_Manager highlight rising frequency trend 8.8% and weather_delay severity_change_pct 49.4 with capital deficit, implying higher net retention would increase capital strain under stress.\n\nConfidence & caveats\nConfidence tier full_monte_carlo for capital; data thin for line-level weather_delay volatility, 7 accident years, 525 claims total, high overdispersion limits precision; 2-year emerging signal window limits robustness."
+  },
+  {
+   "case": "ter_deteriorating",
+   "business": "terrafirma",
+   "question": "Which lines are deteriorating and where is exposure moving?",
+   "routed": [
+    "actuary",
+    "claims",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "risk"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "claims": {
+     "ok": true,
+     "seconds": 149.6,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "pattern_shift_by_line",
+      "leakage_and_litigation",
+      "adverse_development",
+      "large_loss_indicators"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 173.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "emerging_signals",
+      "concentration"
+     ]
+    },
+    "actuary": {
+     "ok": false,
+     "seconds": 180.0,
+     "error": "timed out after 180s",
+     "tools": []
+    }
+   },
+   "timed_out": [
+    "actuary"
+   ],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 39,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 29.0,
+    "processing": 180.0,
+    "synthesizing": 184.6
+   },
+   "wall_s": 416.9,
+   "session_id": "cohort-baseline-ter_deteriorating-r1",
+   "summary": "Weather_delay and equipment are deteriorating on frequency and severity with exposure concentrating in weather_delay, while surety emerges as a red-flag emerging risk and aggregate exposure volatility is rising with loss ratio deterioration.\n\n**Key findings**\n- Weather_delay is deteriorating with exposure moving in: 2024 claims 31 vs prior avg 21.0 per year, latest mean severity $283,762.45 vs prior mean $152,000.66, severity_change_pct 86.7; Risk_Manager red flag severity_change_pct 49.4, recent_claims_per_year 22.5, frequency_change_pct 0.4.\n- Equipment is deteriorating with exposure moving in per Claims_Analyst: 2024 claims 12 vs prior avg 8.7 per year, latest mean severity $306,446.92 vs prior mean $224,996.6, severity_change_pct 36.2; Risk_Manager classifies as amber severity_change_pct 12.0.\n- Early large-loss concentration is in those lines: early large claims count 12 at severity p90 $391,758.6, including TER-00501 equipment reported $1,985,695.0 dev month 5 and TER-00442 weather_delay reported $1,969,944.0 dev month 10.\n- 2024 accident year adverse development signal: reserve_ratio 0.8 vs expected_ratio_for_age 0.551, z_score 1.59; overall severity up 15.6% to latest_year_mean_severity $190,663.0 vs prior_years_mean_severity $164,980.37.\n- Exposure concentration and shift: weather_delay exposure $443,114,000.0 share_of_loss_pct 32.7, followed by builders_risk exposure $373,117,000.0 share_of_loss_pct 15.4 and contractor_liability exposure $327,980,000.0 share_of_loss_pct 21.2; aggregate exposure volatile with exposure_yoy_pct 97.3 in 2024 and loss_ratio_to_exposure_pct rose from 4.61 in 2018 to 6.41 in 2024.\n- Emerging signal red flag for surety: frequency_change_pct 31.2 and severity_change_pct 43.4, recent_claims_per_year 10.5; builders_risk amber severity_change_pct 29.0; contractor_liability green severity_change_pct -33.4.\n\n**Recommended actions**\n- Re-price and tighten underwriting for weather_delay and equipment; review risk selection and limits given frequency and severity uplift.\n- Prioritise underwriting and pricing review for surety red flags and severity controls for weather_delay.\n- Strengthen 2024 reserves and monitor the 12 early large claims, especially weather_delay and equipment, for further development; stabilise aggregate exposure volatility against 2024 exposure rebound 97.3% YoY.\n\n**Strategic Risk Friction**\nClaims_Analyst flags equipment as deteriorating with exposure moving in based on 2024 frequency and severity uplift, while Risk_Manager classifies equipment as amber severity_change_pct 12.0 only; Risk_Manager also elevates surety to red with frequency_change_pct 31.2 and severity_change_pct 43.4, a line not flagged by Claims_Analyst pattern analysis.\n\n**Confidence & caveats**\nLow-moderate confidence; data thin with 525 rows and small per-line counts. Claims_Analyst method = latest accident year vs prior-year averages per line; Risk_Manager signals based on 2-year window, sums by accident year and line."
   }
  ]
 }
