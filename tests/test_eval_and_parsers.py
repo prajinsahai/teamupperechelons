@@ -34,6 +34,14 @@ def test_invented_number_is_flagged():
     assert g["rate"] == 50.0
 
 
+def test_sentence_final_period_and_negative_sign():
+    tools = [{"name": "t", "args": {}, "result": json.dumps({"max": 41000000.0, "deficit": -10039407.84, "exposure": 730965000.0})}]
+    g = grounding("Max claim $41,000,000.0. Exposure $730,965,000.0, deficit **-$10,039,407.84**.", tools)
+    assert g["ungrounded"] == [], g
+    raws = [n["raw"] for n in numbers_in("max $41,000,000.0. next")]
+    assert raws == ["$41,000,000.0"]
+
+
 def test_structural_numbers_are_ignored():
     g = grounding("At the 99.5% level, 1-in-200, over 2018-2024, 3 actions.", TOOLS)
     assert g["checked"] == 0 and g["grounded"]

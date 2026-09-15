@@ -13,7 +13,8 @@ import math
 import re
 from typing import Any, Iterable
 
-NUMBER_RE = re.compile(r"(?<![\w.])\$?\s?(\d[\d,]*(?:\.\d+)?)\s?(M|MN|K|B|BN|%|million|thousand|billion)?(?![\w.])", re.I)
+# A trailing "." is allowed when it ends a sentence ("$41,000,000.0." must not backtrack to "$41,000").
+NUMBER_RE = re.compile(r"(?<![\w.])\$?\s?(\d[\d,]*(?:\.\d+)?)\s?(M|MN|K|B|BN|%|million|thousand|billion)?(?!\d)(?!\.\d)(?![A-Za-z])", re.I)
 SUFFIX = {"K": 1e3, "THOUSAND": 1e3, "M": 1e6, "MN": 1e6, "MILLION": 1e6, "B": 1e9, "BN": 1e9, "BILLION": 1e9}
 # Structural numbers that carry no claim: bullets, thresholds, percentiles, years.
 IGNORE = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0, 95.0, 99.0, 99.5, 100.0, 120.0, 200.0, 12.0, 24.0, 36.0, 48.0, 60.0} | {float(y) for y in range(2010, 2031)}
@@ -40,10 +41,10 @@ def _leaf_numbers(obj: Any, acc: set[float]) -> None:
     if isinstance(obj, bool):
         return
     if isinstance(obj, (int, float)) and not (isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj))):
-        acc.add(float(obj)); return
+        acc.add(abs(float(obj))); return  # sign lives outside the "$" in prose ("-$10.0M" vs -10039407.84)
     if isinstance(obj, str):
         for n in numbers_in(obj):
-            acc.add(n["value"])
+            acc.add(abs(n["value"]))
         return
     if isinstance(obj, dict):
         for v in obj.values():

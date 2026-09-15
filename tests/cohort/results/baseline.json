@@ -1,0 +1,1167 @@
+{
+ "tag": "baseline",
+ "runs": [
+  {
+   "case": "vel_full",
+   "business": "velocity",
+   "question": "Give me a full risk assessment of this business.",
+   "routed": [
+    "actuary",
+    "capital",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.333,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 20.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "capital": {
+     "ok": true,
+     "seconds": 21.3,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 37.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 47,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 6.8,
+    "processing": 37.9,
+    "synthesizing": 12.9
+   },
+   "wall_s": 72.2,
+   "session_id": "cohort-baseline-vel_full-r1",
+   "summary": "The business is growing exposure with frequency-driven loss inflation and materially inadequate 1-in-200 capital, while reinsurance provides negligible protection. 2024 exposure is **$217,882,000.0** +11.7% YoY with loss **$12,071,814.0** and loss_ratio_to_exposure_pct **5.54**. Frequency is negative_binomial with lambda **865.857** claims/year, dispersion_ratio **27.254** and annual_trend_pct **6.0%**. IBNR is **$24,681,871.29** with ultimate_loss **$93,026,161.29** and case reserves carried **$15,291,708.0**.\n\nKey findings\n- Capital and solvency: own funds **$2,000,000** vs capital_required_99_5 **$10,791,187.11**, capital_surplus_or_deficit **-$8,791,187.11**, adequate_at_99_5 false, shortfall_probability_pct **100.0%**. Expected annual loss **$9,613,125.39**; indicated_annual_premium **$12,977,719.28**.\n- VaR and reinsurance: gross mean **$9,612,176.85**, var_95 **$10,369,100.67**, var_99 **$10,678,696.42**, tvar_99 **$10,826,083.39**. Net mean **$9,611,219.28**, expected_recovery **$957.56**; retention $250,000 limit $2,000,000 has minimal impact.\n- Concentration: hhi_by_line **0.259**, top_line physical_damage share_pct **29.8**; physical_damage loss **$20,156,169.0**, auto_liability **$18,526,571.0**, cargo **$17,369,633.0**, workers_comp **$11,478,102.0**.\n- Emerging risks: physical_damage red frequency_change_pct **36.2** severity_change_pct **-6.3**; auto_liability amber frequency_change_pct **18.5**; cargo amber frequency_change_pct **12.5** severity_change_pct **7.4**; workers_comp amber frequency_change_pct **19.0** severity_change_pct **10.4**.\n- Stress: combined +25% frequency / +30% severity raises expected annual loss to **$15,621,328.76**.\n\nRecommended actions\n- Increase gross capital to at least **$10,791,187.11** for 1-in-200 adequacy and reprice to indicated_annual_premium **$12,977,719.28**.\n- Tighten underwriting and pricing for physical_damage and monitor 2023-2024 reporting at pct_reported 0.7 and 0.4; improve liquidity cover of VaR95 currently **0.19**.\n- Test and redesign reinsurance; current layer provides negligible recovery and does not mitigate 99.5% VaR shortfall.\n\nStrategic Risk Friction\nCapital_Manager reports Solvency II SCR adequate with SCR ratio **169.5%** and surplus over SCR **$820,032.17**, while the same agent and Actuary confirm the 99.5% VaR capital requirement is not met with a deficit of **-$8,791,187.11** and 100% shortfall probability.\n\nConfidence & caveats\nConfidence tier full_monte_carlo; 7 accident years, 6,061 claims, moderate tail, negative binomial overdispersion limits frequency stability. Stress scenarios are deterministic scaling of fitted lambda and lognormal mean."
+  },
+  {
+   "case": "vel_reserves_capital",
+   "business": "velocity",
+   "question": "Are our reserves adequate and is our capital position solvent?",
+   "routed": [
+    "actuary",
+    "capital",
+    "claims"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "capital"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 35.5,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "loss_development_triangle",
+      "ibnr_reserve",
+      "capital_test"
+     ]
+    },
+    "capital": {
+     "ok": true,
+     "seconds": 36.7,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "claims": {
+     "ok": true,
+     "seconds": 70.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "development_pattern",
+      "adverse_development",
+      "large_loss_indicators",
+      "pattern_shift_by_line",
+      "leakage_and_litigation"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 26,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 6.7,
+    "processing": 70.8,
+    "synthesizing": 17.2
+   },
+   "wall_s": 110.1,
+   "session_id": "cohort-baseline-vel_reserves_capital-r1",
+   "summary": "Reserves are not demonstrably adequate and the capital position is solvent under Solvency II net of reinsurance but economically insolvent at 99.5% VaR. Actuarial IBNR is material and 2024 shows adverse development, while **$2,000,000** held is far below the **$10,791,187.11** 99.5% requirement.\n\nKey findings\n- Actuarial IBNR: chain-ladder **$24,771,859.81** with 2024 **$18,471,832.9**; loss-development-factor IBNR **$24,681,871.29**, ultimate loss **$93,026,161.29**, paid to date **$55,875,192.31**, case reserves **$15,291,708.0**.\n- Capital: held **$2,000,000** vs 99.5% required **$10,791,187.11**, surplus/deficit **-$8,791,187.11**, adequate_at_99_5 false, shortfall probability 100.0%. Solvency II net of reinsurance own funds **$2,000,000**, SCR **$1,179,967.83**, SCR ratio 169.5%, surplus over SCR **$820,032.17**, status adequate.\n- Claims development: adverse_development_detected true for 2024, reserve_ratio 0.676 vs expected_ratio_for_age 0.394, z_score 1.78. Severity rising: latest mean severity **$11,475.11** vs prior **$11,040.27**, severity_change_pct 3.9; workers_comp severity_change_pct 11.2, cargo 11.4. Leakage rate_pct 4.2, leakage_total **$2,344,136.31**.\n\nRecommended actions\n- Increase gross capital immediately to close 99.5% VaR shortfall and improve liquidity cover of VaR95 0.19.\n- Hold IBNR in line with LDF reporting pattern for 2021-2024 and strengthen 2024/2023 reserves with line-specific reviews for workers_comp and cargo, including early large claims.\n- Address claims leakage and overpayment controls; monitor development at 24-month point.\n\nStrategic Risk Friction\nSolvency II net of reinsurance reports adequate capital with SCR ratio 169.5% and surplus $820,032.17 while the 1-in-200 economic capital test shows a -$8,791,187.11 deficit and 100% shortfall probability, creating a regulatory vs economic solvency tension.\n\nConfidence & caveats\nFull Monte Carlo capital tier; reserve estimates thin for 2023-2024 with latest buckets 24 months and 12 months respectively; Claims_Analyst notes no capital or balance-sheet data loaded for solvency assessment."
+  },
+  {
+   "case": "vel_reinsurance",
+   "business": "velocity",
+   "question": "Is our reinsurance layer worth what we pay for it given how small our claims are?",
+   "routed": [
+    "actuary",
+    "capital",
+    "reinsurance"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "reinsurance"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 20.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics"
+     ]
+    },
+    "reinsurance": {
+     "ok": true,
+     "seconds": 26.4,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "current_layer_recovery",
+      "simulated_net_position",
+      "retention_optimisation",
+      "alternative_structures",
+      "quota_share_vs_excess_of_loss",
+      "attachment_sensitivity"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 32.3,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "loss_development_triangle",
+      "ibnr_reserve",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 92.5,
+   "figures_checked": 40,
+   "ungrounded": [
+    "$67,530",
+    "$93,026",
+    "$8,791"
+   ],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 9.7,
+    "processing": 32.3,
+    "synthesizing": 23.2
+   },
+   "wall_s": 80.8,
+   "session_id": "cohort-baseline-vel_reinsurance-r1",
+   "summary": "The per-occurrence 2,000,000 xs 250,000 reinsurance layer is not worth its cost given the observed severity profile. Historical severity is modest with max $143,137.0 below the $250,000 retention, claims_in_layer 0 and expected_recovery $957.56 per annum against a reinsurance_premium $1,292.71. Net and gross distributions are effectively identical with gross mean $9,612,176.85 and net_of_reinsurance mean $9,611,219.28, VaR99.5 $10,791,187.11.\n\nKey findings\n- Severity is small: empirical mean $11,141.8, median $7,793.0, p90 $23,075.0, p99 $57,122.8, max $143,137.0 across 6,061 claims, total historical claim amount $67,530,475.0.\n- Layer is unused: largest_gross_claim 143137.0 < retention 250000.0, claims_in_layer 0, claims_exhausting_layer 0, expected_recovery 0.0.\n- Capital stress persists net of reinsurance: own funds $2,000,000 vs SCR $1,179,967.83, SCR ratio 169.5%, surplus over SCR $820,032.17, but 99.5% capital test shows capital required $10,791,187.11, capital surplus or deficit -$8,791,187.11, adequate_at_99_5 false, shortfall probability pct 100.0.\n- Liquidity and reserves are material: liquidity cover of VaR95 0.19 with case reserves carried $15,291,708.0, IBNR $24,681,871.29, ultimate loss $93,026,161.29.\n- Cost effectiveness: TCoR at current retention 250000 is $9,706,909.41, annual cost of retained risk $9,705,616.71, expected recovery $957.56.\n\nRecommended actions\n- Remove or materially raise the per-occurrence XoL; optimal_retention 1,000,000 with optimal_tcor $9,706,497.67.\n- Replace with aggregate stop-loss attaching at aggregate_deductible $9,916,408.5 with aggregate_limit $874,778.61, premium $93,103.52, which lowers TCoR to $9,666,276.53 vs per_occurrence_xol TCoR $9,706,909.41.\n- Remediate liquidity mismatch and fund IBNR; reconcile Solvency II SCR adequacy with 99.5% VaR capital inadequacy before relying on SCR ratio.\n\nStrategic Risk Friction\nCapital_Manager and Reinsurance_Manager conclude the layer is uneconomic with negligible recovery, while Actuary states reinsurance worth vs price cannot be determined from available tools because premium, attachment, limit and ceding commission are not in loaded data. Simultaneously SCR ratio 169.5% is reported adequate net of reinsurance while 99.5% VaR capital test shows 100.0% shortfall probability and capital surplus or deficit -$8,791,187.11.\n\nConfidence & caveats\nFull_monte_carlo on 6,061 claims rows accident years 2018-2024 lines auto_liability, cargo, physical_damage, workers_comp. Severity lognormal with few large losses so tail estimates are data-thin; recent accident years 2023-2024 are immature for development."
+  },
+  {
+   "case": "vel_leakage",
+   "business": "velocity",
+   "question": "Where is claims leakage or fraud costing us, and how much?",
+   "routed": [
+    "actuary",
+    "claims"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "claims"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 1.0,
+   "agents": {
+    "claims": {
+     "ok": true,
+     "seconds": 43.4,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "leakage_and_litigation",
+      "claims_intelligence",
+      "pattern_shift_by_line",
+      "adverse_development",
+      "large_loss_indicators"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 44.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 42,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 3.2,
+    "processing": 44.8,
+    "synthesizing": 10.3
+   },
+   "wall_s": 74.2,
+   "session_id": "cohort-baseline-vel_leakage-r1",
+   "summary": "Claims leakage is quantified on closed claims at **$2,344,136.31** with a **4.2%** leakage rate, affecting **680** of **4,607** closed claims where paid exceeds reported incurred. Concentration is in workers_comp, with top overpayments VEL-04391 **84291.65**, VEL-03890 **46226.41**, VEL-01609 **45218.8**, plus physical_damage VEL-05326 **43938.06** and cargo VEL-05846 **42825.29**. Fraud/over-reserving signals are indicated by Isolation-Forest anomalies: **304** claims at **5.0%** anomaly rate with anomalous amount total **1,447,689**. Litigation is not inflating severity.\n\nKey findings\n- Claims leakage on closed claims is **$2,344,136.31**, leakage_rate_pct **4.2**, overpaid_claim_count **680** of closed_claims **4,607**.\n- Top overpaid claims are concentrated in workers_comp: VEL-04391 overpaid **84291.65**, VEL-03890 overpaid **46226.41**, VEL-01609 overpaid **45218.8**.\n- Physical_damage VEL-05326 overpaid **43938.06** and cargo VEL-05846 overpaid **42825.29** also appear in top overpaid.\n- Isolation-Forest anomalies: anomaly_count **304**, anomaly_rate_pct **5.0**, anomalous_amount_total **1,447,689**; RF outlier paid count is **1**.\n- Litigation is not inflating severity: litigation_rate_pct **5.0**, litigation_severity_multiple **0.94**.\n\nRecommended actions\n- Prioritise audit and payment review for workers_comp overpayments, starting with VEL-04391, VEL-03890, VEL-01609, VEL-01332, VEL-03723.\n- Review the 304 Isolation-Forest anomalous claims and the 106 early_large_claims at p90+ severity to test for fraud/over-reserving, especially 2024 workers_comp and cargo early large losses.\n- Tighten reported vs paid controls on closed claims to reduce the 4.2% leakage rate.\n\nStrategic Risk Friction\nClaims_Analyst quantifies leakage at $2,344,136.31 using paid vs reported incurred, while Actuary states no fraud/leakage flag or leakage cost field is present in loaded sources and cannot quantify leakage/fraud cost.\n\nConfidence & caveats\nData covers 6,061 claims, accident_years 2018-2024, lines auto_liability, cargo, physical_damage, workers_comp; leakage method is paid > reported incurred and RF outlier = paid > 2x RandomForest-predicted severity. Actuary notes no fraud/leakage indicators are loaded."
+  },
+  {
+   "case": "nex_full",
+   "business": "nexus",
+   "question": "Give me a full risk assessment of this business.",
+   "routed": [
+    "actuary",
+    "capital",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.333,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 23.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 30.7,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    },
+    "capital": {
+     "ok": true,
+     "seconds": 30.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 93.0,
+   "figures_checked": 57,
+   "ungrounded": [
+    "$41,000",
+    "$730,965",
+    "$41,000",
+    "$25,000"
+   ],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 5.7,
+    "processing": 30.9,
+    "synthesizing": 26.8
+   },
+   "wall_s": 78.5,
+   "session_id": "cohort-baseline-nex_full-r1",
+   "summary": "The business exhibits rapid exposure growth, deteriorating frequency/severity trends, heavy-tailed severity and material IBNR, with gross 99.5% capital inadequacy and net SCR ratio below target. Cyber_breach dominates loss share and concentration, while 2024 exposure +94.7% YoY amplifies tail risk under thin data.\n\nKey findings\n- Exposure movement: aggregate exposure $476,392,000.0 in accident year 2024, +94.7% YoY, with loss $68,329,252.0 and loss ratio to exposure 14.34%. Total claim amount $233,262,568.0 across 144 claims, accident years 2018-2024.\n- Reserving and trend: IBNR $130,440,627.34, ultimate loss $368,681,992.34. Frequency Poisson lambda 20.571 claims/year, dispersion_ratio 3.417, annual_trend_pct 14.1. Severity heavy tail: empirical_mean $1,619,878.94, p99 $29,254,123.69, max $41,000,000.0.\n- Capital and VaR: expected_annual_loss $23,663,678.9, indicated_annual_premium $31,945,966.52. Gross 1-in-200 capital_required_99_5 $96,768,306.66 vs capital_held $50,000,000, deficit -$46,768,306.66, shortfall_probability_pct 4.895. Monte Carlo gross mean $23,831,844.5, VaR95 $49,691,044.19, VaR99 $76,523,003.02, TVaR99 $113,645,353.18. Net of XoL retention $2,000,000 limit $25,000,000 mean $14,990,655.02, VaR99 $39,073,160.97.\n- Concentration and emerging risk: HHI by line 0.324, HHI by risk class 0.329. Cyber_breach share of loss 45.5%, exposure cyber_breach $730,965,000.0. Top 5 claims share 51.7% of loss including NEX-00111 $41,000,000.0. All four lines red last 2 years: cyber_breach frequency_change_pct 83.8 severity_change_pct 42.3; tech_eo severity_change_pct 209.8.\n- Solvency and stress: Solvency II net SCR ratio 117.9% <120%. Own funds $50,000,000 vs SCR $42,415,893.56, surplus $7,584,106.44. Net 99.5% capital required $57,406,548.58 vs capital held $50,000,000 deficit -$7,406,548.58. Catastrophe stress freq x2 sev x1.5 expected annual loss $70,991,036.71, +200.0% vs base $23,663,678.9.\n\nRecommended actions\n- Increase gross capital or purchase reinsurance to close 99.5% deficit of $46,768,306.66 and restore net SCR ratio \u2265120%; review XoL terms retention $2,000,000 / limit $25,000,000.\n- Reprice to indicated_annual_premium $31,945,966.52 and tighten cyber_breach underwriting given 45.5% loss share and red frequency/severity signals.\n- Strengthen early reporting and reserving for 2023-2024 accident years; monitor IBNR $130,440,627.34 and case reserves $82,074,202.0 with liquidity cover of VaR95 2.15.\n\nStrategic Risk Friction\nGross 99.5% capital inadequacy with deficit -$46,768,306.66 and shortfall probability 4.895% conflicts with net SCR surplus $7,584,106.44 and net 99.5% deficit only -$7,406,548.58, highlighting tension between gross tail exposure and reinsurance-dependent solvency view.\n\nConfidence & caveats\nConfidence tier benchmark_thin_data. n=144 claims over 7 years limits tail stability; heavy tail and rising frequency 14.1% limit reserve stability."
+  },
+  {
+   "case": "nex_reserves_capital",
+   "business": "nexus",
+   "question": "Are our reserves adequate and is our capital position solvent?",
+   "routed": [
+    "actuary",
+    "capital",
+    "claims"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "capital"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 41.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 58.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "loss_development_triangle",
+      "ibnr_reserve",
+      "capital_test"
+     ]
+    },
+    "claims": {
+     "ok": true,
+     "seconds": 66.3,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "adverse_development",
+      "development_pattern",
+      "large_loss_indicators",
+      "pattern_shift_by_line",
+      "leakage_and_litigation"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 53,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 12.0,
+    "processing": 66.3,
+    "synthesizing": 34.9
+   },
+   "wall_s": 128.7,
+   "session_id": "cohort-baseline-nex_reserves_capital-r1",
+   "summary": "Reserves are not demonstrably adequate and the capital position is not solvent at a 99.5% confidence level. The Solvency II-style SCR ratio is **117.9%** with own funds **$50,000,000** against SCR **$42,415,893.56**, a surplus of **$7,584,106.44** but below the 120% warning threshold. Economic capital is deficient net of reinsurance and materially deficient gross, while 2024 accident year reserves show adverse development driven by cyber_breach severity inflation.\n\nKey findings\n- Capital sufficiency: SCR ratio **117.9%** WARNING <120%. Net 99.5% capital required **$57,406,548.58** vs held **$50,000,000**, deficit **-$7,406,548.58**, adequate_at_99_5 false, shortfall probability **0.645%**. Gross 99.5% capital required **$96,768,306.66** vs held **$50,000,000**, deficit **-$46,768,306.66**, shortfall probability **4.895%**.\n- Reserve adequacy: Case reserves carried **$82,074,202.0** on 144 claims, total_claim_amount **$233,262,568.0**. IBNR by LDF **$130,440,627.34** with ultimate **$368,681,992.34**; chain-ladder IBNR **$130,428,198.88**. 2024 IBNR **$105,298,302.0** LDF and **$105,291,282.11** chain-ladder.\n- Claims development: Accident year 2024 age 12 months reserve_ratio **0.566** vs expected_ratio_for_age **0.438**, z_score **1.24**, flagged adverse. Reserve **39,718,756.0** on reported **70,198,868.0**. Latest year mean severity **1,952,264.34** vs prior **1,681,068.93**, severity_change_pct **16.1%**, trend **8.2%** per year vs CPI **3.0%**.\n- Line concentration: 2024 cyber_breach latest_year_claims **18** vs prior_avg **6.8**, latest_mean_severity **2,781,700.11** vs prior **1,365,961.78**, severity_change_pct **103.6%**. Early large claims count **4** >= p90 **1,859,682.6** including NEX-00111 reported_amount **43,050,000.0**.\n\nRecommended actions\n- Raise own funds or increase reinsurance to lift SCR ratio above 120% and close the net 99.5% capital deficit of **$7,406,548.58** and gross deficit of **$46,768,306.66** before renewal.\n- Strengthen 2021-2024 reserves monitoring and uplift 2024 cyber_breach and d_and_o case reserves; review NEX-00111, NEX-00130, NEX-00110 and 8 IsolationForest anomalies.\n- Quantify and price retained risk; annual cost of retained risk **$18,383,926.5** with expected recovery **$8,841,189.49**, and review pricing/exposure controls for 2021 and 2024 spikes.\n\nStrategic Risk Friction\nSCR surplus of **$7,584,106.44** coexists with a net 99.5% economic capital deficit of **-$7,406,548.58** and a gross deficit of **-$46,768,306.66**, creating tension between regulatory SCR compliance and economic solvency under VaR99.5.\n\nConfidence & caveats\nConfidence tier benchmark_thin_data. Simulation based on 20,000 paths, Poisson frequency lambda 20.571, lognormal severity mu 12.9054 sigma 1.4493, thin historical claims 144 rows. Reserve estimates sensitive to reporting pattern assumptions and social inflation."
+  },
+  {
+   "case": "nex_reinsurance",
+   "business": "nexus",
+   "question": "Is our reinsurance programme right for the cyber catastrophe tail we carry, and what would it cost to change it?",
+   "routed": [
+    "actuary",
+    "reinsurance",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "reinsurance"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 41.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "reinsurance": {
+     "ok": true,
+     "seconds": 45.2,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "current_layer_recovery",
+      "simulated_net_position",
+      "retention_optimisation",
+      "alternative_structures",
+      "attachment_sensitivity",
+      "quota_share_vs_excess_of_loss"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 52.7,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "monte_carlo_var",
+      "stress_scenarios",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 26,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 3.9,
+    "processing": 52.7,
+    "synthesizing": 12.2
+   },
+   "wall_s": 82.8,
+   "session_id": "cohort-baseline-nex_reinsurance-r1",
+   "summary": "The current per-occurrence XoL **25,000,000 xs 2,000,000** provides a partial cyber catastrophe cap but is inadequate for the tail we carry. Gross capital is short at 99.5% and cyber breach is rising fast, leaving material net tail exposure. Directional cost impacts of changing retentions/limits can be modelled via TCoR, but definitive programme fit and market cost to change cannot be quantified from available data.\n\n**Key findings**\n- Capital adequacy fails on gross annual loss: capital_held **50,000,000** vs capital_required_99_5 **96,768,306.66**, capital_surplus_or_deficit **-46,768,306.66**, adequate_at_99_5 **false**, shortfall_probability_pct **4.895**.\n- Frequency is overdispersed and rising: Poisson lambda **20.571** claims/yr, dispersion_ratio **3.417**, annual_trend_pct **14.1**; cyber breach dominates with exposure **$730,965,000.0**, loss **$106,075,035.0**, 59 claims, 45.5% share of loss, top 5 claims share **51.7%**.\n- Severity is heavy-tailed: empirical p99 **29,254,123.69**, max **41,000,000.0**, largest cyber claim **$41,000,000.0**; uncovered above layer **$18,200,217.0** historically.\n- Net of reinsurance mean **$14,990,655.02**, net VaR99.5 **$57,406,548.58**, expected recovery **$8,841,189.49**; stress freq x2 sev x1.5 lifts expected annual loss to **$70,991,036.71**.\n- IBNR is material: ibnr **130,440,627.34**, ultimate_loss **368,681,992.34**.\n\n**Recommended actions**\n- Retain per-occurrence XoL for tail cap and review increasing limit and/or retention toward TCoR-optimal **$9,298,000.0**; consider cyber-specific layer.\n- Evaluate aggregate stop-loss as frequency cost offset and obtain market pricing before committing; do not replace XoL with pure quota share for tail protection.\n- Re-price for trend and overdispersion; increase gross capital by at least the 99.5% deficit and tighten IBNR monitoring for 2023-2024.\n\n**Strategic Risk Friction**\nReinsurance_Manager provides TCoR-based cost indications for retention/limit changes and alternatives, while Actuary and Risk_Manager state reinsurance programme terms are not in tool outputs and cost to change cannot be quantified from current data.\n\n**Confidence & caveats**\nConfidence tier benchmark_thin_data with n=144 claims over 7 years; Monte Carlo Poisson-lognormal estimates are thin-data driven and reinsurance programme terms are not in the tool outputs."
+  },
+  {
+   "case": "nex_cat_policy",
+   "business": "nexus",
+   "question": "What happens to us in a catastrophe year, and does the policy actually pay?",
+   "routed": [
+    "actuary",
+    "capital",
+    "policy",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "policy"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.5,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 19.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "policy": {
+     "ok": true,
+     "seconds": 22.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "extract_policy_clauses",
+      "coverage_gap_check",
+      "search_policy"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 26.1,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "monte_carlo_var",
+      "stress_scenarios",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 60.1,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 62,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 18.8,
+    "processing": 60.1,
+    "synthesizing": 126.5
+   },
+   "wall_s": 220.3,
+   "session_id": "cohort-baseline-nex_cat_policy-r1",
+   "summary": "In a catastrophe year the portfolio is under-capitalised and the policy will not pay the modelled tail. Under freq x2 sev x1.5 stress expected annual loss rises to **$70,991,036.71**, +200.0% vs base **$23,663,678.9**. Net of the $2,000,000 retention / $25,000,000 limit XoL, retained VaR99.5 is **$57,406,548.58** and TVaR99 is **$75,761,936.92** against own funds **$50,000,000**. Solvency II net of reinsurance shows own funds **$50,000,000**, SCR **$42,415,893.56**, SCR ratio **117.9%** with surplus over SCR **$7,584,106.44** \u2192 warning <120%. Net 99.5% capital adequacy is false with capital required **$57,406,548.58** vs held **$50,000,000**, deficit **-$7,406,548.58**, shortfall probability **0.645%**, expected shortfall given breach **$43,295,176.83**. Gross 99.5% capital need is **$96,768,306.66** with shortfall probability **4.895%** and gross deficit **-$46,768,306.66**.\n\n**Key findings**\n* Policy cap binds: Limit of Liability is USD **$25,000,000** each claim and in the aggregate with deductible **$500,000** each claim and systemic retention **$2,000,000**. Largest claim **$41,000,000** > $25,000,000 uncovered **$16,000,000**; severity_p99 **$29,254,123.69** uncovered **$4,254,123.69**; var_99_5 **$96,768,306.66** uncovered **$71,768,306.66**.\n* Coverage friction: Business interruption subject to 12 hour waiting period; dependent BI sub-limit **$10,000,000**; notification within 72 hours is condition precedent; MFA warranty required. Exclusions include war/state-sponsored cyber, public utility infrastructure failure, unencrypted portable devices, prior known circumstances.\n* Exposure momentum: Aggregate exposure **$476,392,000** in 2024, +94.7% YoY, loss **$68,329,252**, loss ratio 14.34%. Cyber_breach exposure **$730,965,000** 45.5% share of loss; tech_eo 28.8%. Emerging signals red: cyber frequency +83.8% severity +42.3%; tech_eo severity +209.8%.\n* Actuarial base: Poisson lambda 20.571 claims/year, trend 14.1%, dispersion ratio 3.417. Empirical severity mean **$1,619,878.94**, p99 **$29,254,123.69**, max **$41,000,000.0**. IBNR **$130,440,627.34**, ultimate loss **$368,681,992.34**.\n\n**Recommended actions**\n* Raise own funds or reduce net retained exposure to restore SCR ratio >120% and cover net VaR99.5 **$57,406,548.58**.\n* Increase excess-of-loss cover above **$25,000,000** and add aggregate stop-loss to contain net TVaR99 **$75,761,936.92**.\n* Re-price / tighten retention **$2,000,000** / limit **$25,000,000** layer; annual cost of retained risk **$18,383,926.5**.\n* Tighten notification and MFA warranty controls and confirm compliance before renewal; review sub-limits for regulatory fines **$5,000,000**, dependent BI **$10,000,000**, ransomware negotiation **$2,000,000**.\n\n**Strategic Risk Friction**\nModeled catastrophe tail gross VaR99.5 **$96,768,306.66** and net VaR99.5 **$57,406,548.58** materially exceed the policy hard cap **$25,000,000** aggregate, so the policy will truncate payout in a catastrophe year while capital remains deficient. Payment is further at risk from condition precedent notification, MFA warranty and exclusions.\n\n**Confidence & caveats**\nConfidence tier benchmark_thin_data; 144 claims over accident years 2018-2024, Monte Carlo 20,000 paths Poisson x lognormal. Thin data limits tail stability. Policy payment conditions cannot be verified from loaded data; clause extraction by regex."
+  },
+  {
+   "case": "aeg_full",
+   "business": "aegis",
+   "question": "Give me a full risk assessment of this business.",
+   "routed": [
+    "actuary",
+    "capital",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.333,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 18.1,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 18.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    },
+    "capital": {
+     "ok": true,
+     "seconds": 21.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 43,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 5.8,
+    "processing": 21.0,
+    "synthesizing": 25.3
+   },
+   "wall_s": 65.7,
+   "session_id": "cohort-baseline-aeg_full-r1",
+   "summary": "The business is undercapitalized for tail risk with rising exposure and deteriorating workers\u2019 compensation and medical malpractice trends. Gross expected annual loss is **$44,278,178.32** against indicated annual premium **$59,775,540.73**, with IBNR **$124,982,182.95** and ultimate loss **$517,331,433.95**. Capital held **$20,000,000** is materially below the 1-in-200 requirement.\n\nKey findings\n- Portfolio 1,353 claims 2016-2024, total_claim_amount **$389,319,019.0**; frequency lambda 150.333 claims/year with annual_trend_pct **1.9** and heavy-tailed severity lognormal_p99 **$2,307,293.82**.\n- 2024 exposure **$876,990,000.0**, loss **$63,588,206.0**, loss_ratio_to_exposure_pct **7.25**, exposure_yoy_pct **10.1**.\n- Concentration moderate HHI_by_line **0.273**; medical malpractice loss share **35.6**% exposure **$3,222,500,000.0**, workers_comp loss share **28.7**%.\n- Emerging threats: workers_comp signal red frequency_change_pct **35.2** severity_change_pct **54.6**; medical_malpractice amber frequency_change_pct **6.7** severity_change_pct **27.0**.\n- Monte Carlo gross mean **$44,322,735.13**, VaR99 **$64,654,206.81**, TVaR99 **$70,043,231.98**; net of reinsurance mean **$37,578,559.04**, VaR99 **$49,004,334.43**.\n- Stress +25% freq / +30% sev raises expected annual loss to **$71,952,039.77**; catastrophe scenario to **$132,834,534.96**.\n\nRecommended actions\n- Increase reserves to chain-ladder IBNR level and strengthen pricing to indicated premium **$59,775,540.73**.\n- Raise gross capital to at least **$68,018,213.75** 99.5% VaR and review reinsurance for tail severity; tighten workers_comp underwriting immediately.\n- Improve liquidity; cover of VaR95 is **0.44** and review XoL effectiveness given expected recovery **$6,744,176.09**.\n\nStrategic Risk Friction\nActuary reports gross 1-in-200 capital required **$68,018,213.75** vs capital held **$20,000,000** deficit **-$48,018,213.75**, while Capital_Manager reports net of reinsurance 99.5% VaR capital required **$50,720,966.91** deficit **-$30,720,966.91** with SCR ratio **152.2%** adequate. SCR adequacy conflicts with 99.5% VaR capital inadequacy.\n\nConfidence & caveats\nConfidence tier full_monte_carlo; 9 years ~150 claims/year, heavy tail severity limits precision for 2023-2024. Data thinness 1,353 claims across 4 lines."
+  },
+  {
+   "case": "aeg_reserves_capital",
+   "business": "aegis",
+   "question": "Are our reserves adequate given the long tail, and is our capital position solvent?",
+   "routed": [
+    "actuary",
+    "capital",
+    "claims"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "capital"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 39.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics"
+     ]
+    },
+    "claims": {
+     "ok": true,
+     "seconds": 43.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "pattern_shift_by_line",
+      "leakage_and_litigation",
+      "development_pattern",
+      "adverse_development",
+      "large_loss_indicators",
+      "anomalous_claims"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 91.1,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "loss_development_triangle",
+      "ibnr_reserve",
+      "frequency_model",
+      "severity_model",
+      "capital_test"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 48,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 15.0,
+    "processing": 91.1,
+    "synthesizing": 15.5
+   },
+   "wall_s": 136.0,
+   "session_id": "cohort-baseline-aeg_reserves_capital-r1",
+   "summary": "Reserves are inadequate for long-tail development and capital is regulatory-solvent but economically insolvent. Solvency II net-of-reinsurance shows own funds **$20,000,000**, SCR **$13,142,407.87**, SCR ratio **152.2%** with surplus over SCR **$6,857,592.13**, yet the 99.5% VaR capital test fails net and gross with 100% shortfall probability. Long-tail paid/reported remains **0.894** at 72 months and social inflation is driving severity up.\n\nKey findings\n- Reserve adequacy is weak: paid/reported 12:0.097, 24:0.292, 36:0.478, 48:0.681, 60:0.855, 72:0.894. Reserve ratios by accident year 2024 0.903, 2023 0.708, 2022 0.522, 2021 0.319 with adverse development flagged for 2016 age 108 months and 2024 age 12 months.\n- Severity inflation: latest year mean severity **$390,111.69** vs prior years mean **$315,175.75**, change +23.8%. Social inflation 4.1% per year vs assumed CPI 3.0% with severity trend 7.1% per year. Workers_comp **$528,022.86** +66.3%, medical_malpractice **$298,473.44** +42.9%.\n- IBNR estimates converge ~$125M: chain-ladder total_chain_ladder_ibnr **$124,972,821.7**; LDF IBNR **$124,982,182.95**, ultimate_loss **$517,331,433.95**, paid_to_date **$236,734,604.0**, case_reserves **$156,170,937.0**. 2024 IBNR **$95,119,176.0**.\n- Capital: 99.5% VaR net capital required **$50,720,966.91** vs capital held **$20,000,000**, deficit **-$30,720,966.91**; gross capital required **$68,018,213.75** vs capital held **$20,000,000**, deficit **-$48,018,213.75**, adequate_at_99_5 false, shortfall probability 100.0%. Liquidity cover of VaR95 is 0.44.\n\nRecommended actions\n- Strengthen case reserves for 2021-2024 accident years and workers_comp/medical_malpractice, with immediate case reviews on early large claims AEG-01309, AEG-01238, AEG-01228 and anomalous claims AEG-00746.\n- Increase eligible own funds or restructure reinsurance to cover the 99.5% VaR shortfall; improve liquidity cover of VaR95 from 0.44.\n- Re-estimate reporting pattern and tail factors with external benchmarks; age-to-age factors flatten to 1.0 after 60 months which may understate GL/medical malpractice tail.\n\nStrategic Risk Friction\nSolvency II SCR adequacy at 152.2% with surplus $6,857,592.13 conflicts with economic capital failure at 99.5% VaR where net deficit is -$30,720,966.91 and gross deficit is -$48,018,213.75 with 100% shortfall probability.\n\nConfidence & caveats\nConfidence tier full_monte_carlo for capital; reserve adequacy limited by 1,353 claims over 9 years, small per-line volumes e.g., property 18 claims in 2024, and assumed zero development beyond 60 months. No explicit reserve adequacy test provided by Capital_Manager."
+  },
+  {
+   "case": "aeg_reinsurance",
+   "business": "aegis",
+   "question": "Is our retention and limit right for medical malpractice, and would a different structure be cheaper?",
+   "routed": [
+    "actuary",
+    "claims",
+    "reinsurance"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "reinsurance"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 26.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "claims": {
+     "ok": true,
+     "seconds": 34.3,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "pattern_shift_by_line",
+      "leakage_and_litigation",
+      "adverse_development",
+      "large_loss_indicators",
+      "anomalous_claims",
+      "development_pattern"
+     ]
+    },
+    "reinsurance": {
+     "ok": true,
+     "seconds": 36.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "current_layer_recovery",
+      "simulated_net_position",
+      "retention_optimisation",
+      "alternative_structures",
+      "attachment_sensitivity",
+      "quota_share_vs_excess_of_loss"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 96.9,
+   "figures_checked": 32,
+   "ungrounded": [
+    "$48,018"
+   ],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 3.2,
+    "processing": 36.0,
+    "synthesizing": 32.4
+   },
+   "wall_s": 85.6,
+   "session_id": "cohort-baseline-aeg_reinsurance-r1",
+   "summary": "Current retention and limit adequacy for medical malpractice cannot be validated from the available outputs. Actuary and Claims_Analyst both note the models are portfolio-wide with no medical malpractice-specific frequency, severity, development, deductible or coverage_limit summaries, so retention/limit optimality for the line cannot be assessed. Portfolio capital is inadequate at 99.5% with capital held $20,000,000 versus capital required $68,018,213.75 and surplus/deficit -$48,018,213.75.\n\nKey findings\n- Portfolio frequency Poisson MLE lambda = 150.333 claims/year with annual trend 1.9% and dispersion ratio 0.861. Severity lognormal empirical mean $287,745.03, p90 $689,810.6, p99 $2,000,000.0, max $5,376,103.0. Chain-ladder IBNR $124,972,821.7, ultimate loss $517,331,433.95. Indicated annual premium $59,775,540.73.\n- Medical malpractice frequency and severity are rising: 2024 claims = 80 vs prior avg 68.6 per year, latest mean severity $298,473.44 vs prior mean $208,821.42, severity_change_pct 42.9. Social inflation 4.1% per year vs assumed CPI 3.0%. Early large claims count = 29 with examples above p90. Litigation rate pct 32.8, leakage total $556,290.0, leakage rate pct 0.23.\n- Current per-occurrence XoL is 10,000,000 xs 1,000,000 with claims_in_layer 68, claims_exhausting_layer 0, largest_gross_claim 5,376,103.0, uncovered_above_layer 0.0. Monte Carlo net mean 37,578,559.04, VaR99.5 50,720,966.91, expected_recovery 6,744,176.09. TCoR at current retention is 47,734,589.39.\n\nRecommended actions\n- Obtain line-of-business filtered frequency, severity, development and pricing for medical_malpractice only, then re-run retention/limit optimisation and capital test before any change.\n- Prioritise reserve and early-loss management for medical malpractice given 42.9% severity increase and adverse 2024 development signal, and review the 29 early large claims.\n- Do not implement portfolio-level retention increase on medical malpractice basis until line-specific deductible/coverage_limit distribution and limit exhaustion analysis is available.\n\nStrategic Risk Friction\nReinsurance_Manager portfolio TCoR optimisation recommends raising per-occurrence retention toward 3,449,000.0 with optimal_tcor 46,145,977.02 and adding aggregate stop-loss, while Actuary and Claims_Analyst state medical malpractice-specific retention/limit adequacy cannot be assessed from current portfolio-wide outputs.\n\nConfidence & caveats\nMedium confidence on trend signals; low confidence on retention/limit optimality for medical malpractice because deductible/coverage_limit distribution by line is not provided and no limit-exhaustion analysis was returned. All reinsurance optimisation figures are portfolio-level across general_liability, medical_malpractice, property, workers_comp."
+  },
+  {
+   "case": "aeg_deteriorating",
+   "business": "aegis",
+   "question": "Which lines are deteriorating and what should we do about them this quarter?",
+   "routed": [
+    "actuary",
+    "claims",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "claims"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 23.5,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 30.5,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    },
+    "claims": {
+     "ok": true,
+     "seconds": 30.7,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "claims_intelligence",
+      "pattern_shift_by_line",
+      "leakage_and_litigation",
+      "adverse_development",
+      "large_loss_indicators"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 51,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 23.7,
+    "processing": 30.7,
+    "synthesizing": 66.0
+   },
+   "wall_s": 137.3,
+   "session_id": "cohort-baseline-aeg_deteriorating-r1",
+   "summary": "Workers_comp is deteriorating this quarter with red signal deterioration, while medical_malpractice and property are amber deteriorating; general_liability shows leakage but no clear trend signal. Portfolio-wide frequency is rising and severity is heavy-tailed with material IBNR concentration in 2023-2024 and capital adequacy failing at 99.5%. Immediate actions are underwriting and pricing tightening for workers_comp, reserve strengthening and case triage for workers_comp and medical_malpractice, and leakage and litigation controls.\n\n**Key findings**\n- Workers_comp red: frequency_change_pct **35.2** and severity_change_pct **54.6**, recent_claims_per_year **45.0**; 2024 severity +66.3% to **$528,022.86** vs **$317,446.33** prior, claims 43 vs prior avg 35.0.\n- Medical_malpractice amber: severity_change_pct **27.0**, frequency_change_pct **6.7**, recent_claims_per_year **73.5**, line share of loss **35.6%**; 2024 severity +42.9% to **$298,473.44** vs **$208,821.42** prior, claims 80 vs prior avg 68.6.\n- Property amber: frequency_change_pct **21.0**, severity_change_pct **19.7**, recent_claims_per_year **18.5**.\n- Portfolio: aggregate loss ratio to exposure rose to **7.25%** in 2024 from **6.23%** in 2023; IBNR **$124,982,182.95**, ultimate loss **$517,331,433.95**; 2024 IBNR **$95,112,834.72** and 2023 IBNR **$21,358,790.75**.\n- Capital adequacy fails: capital held **$20,000,000** vs capital required 99.5% **$68,018,213.75**, deficit **-$48,018,213.75**.\n- 2024 severity up 23.8% to mean **$390,111.69** vs prior **$315,175.75**; social inflation 4.1% per year vs assumed CPI 3.0%; accident year 2024 reserve ratio **0.903** vs expected **0.736** z **1.26**.\n\n**Recommended actions**\n- Immediate underwriting and pricing review for workers_comp with claims severity triage and risk class tightening this quarter; prioritize early p90+ losses AEG-01238 **$1,981,106** and AEG-01342 **$1,905,583**.\n- Strengthen 2024 reserves and pricing for medical_malpractice; prioritize case reviews on AEG-01228 **$2,146,127** and AEG-01195 **$1,789,231**.\n- Enhance monitoring and reserve adequacy for property; review reinsurance layer given net VaR95 **45,204,202.3** vs gross VaR95 **57,075,911.15**.\n- Launch leakage and payment-accuracy review; total leakage **$556,290.0** rate **0.23%**; tighten litigation management given litigation rate **32.8%** and mean report lag **23.7** days.\n\n**Strategic Risk Friction**\nActuary reports no line-of-business disaggregation is returned by tools and cannot identify which lines are deteriorating, while Risk_Manager and Claims_Analyst identify workers_comp and medical_malpractice deterioration from frequency/severity signals and 2024 case data.\n\n**Confidence & caveats**\nConfidence tier full_monte_carlo per Risk_Manager; emerging signals based on 2-year window vs earlier years with 1,353 claims, data thin for tail. Actuarial outputs lack line disaggregation; claim counts per line in 2024 are low e.g., workers_comp 43, property 18, general_liability 22."
+  },
+  {
+   "case": "ter_full",
+   "business": "terrafirma",
+   "question": "Give me a full risk assessment of this business.",
+   "routed": [
+    "actuary",
+    "capital",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.333,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 31.3,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 38.4,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 44.0,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 100.0,
+   "figures_checked": 54,
+   "ungrounded": [],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 3.8,
+    "processing": 44.0,
+    "synthesizing": 23.2
+   },
+   "wall_s": 85.4,
+   "session_id": "cohort-baseline-ter_full-r1",
+   "summary": "The business is capital deficient at 99.5% confidence with volatile exposure growth and deteriorating severity signals, while Solvency II-style SCR appears marginally adequate on a net basis. Net expected annual loss is **$10,540,683.17** with net VaR95 **$13,467,255.01** and net VaR99.5 **$15,539,407.84** against own funds **$5,500,000**, producing a net 99.5% deficit of **-$10,039,407.84**. Gross 99.5% capital required is **$21,495,320.76** versus capital held **$5,500,000**, deficit **-$15,995,320.76**. Liquidity cover of VaR95 is **0.41** with case reserves **$25,897,616.0**.\n\nKey findings\n- Solvency warning: SCR ratio **110.0%** <120% with own funds **$5,500,000** vs SCR **$4,998,724.67**, surplus over SCR **$501,275.33** on net_of_reinsurance basis.\n- Exposure momentum and concentration: 2024 exposure **$279,805,000.0** with loss **$17,922,322.0**, loss_ratio_to_exposure_pct **6.41**, exposure_yoy_pct **97.3**. Weather_delay dominates exposure **$443,114,000.0** and loss **$27,948,719.0**, share_of_loss_pct **32.7**; contractor_liability share_of_loss_pct **21.2**. HHI by line **0.224**, HHI by risk class **0.274**, concentration_level diversified, top5_claims_share_pct **10.5**.\n- Emerging risks: surety signal red with frequency_change_pct **31.2**, severity_change_pct **43.4**, recent_claims_per_year **10.5**; weather_delay signal red with frequency_change_pct **0.4**, severity_change_pct **49.4**, recent_claims_per_year **22.5**. Frequency trend **8.8%**, dispersion_ratio **20.489**, distribution negative_binomial.\n- Reserving and tail: IBNR **$35,603,049.38**, ultimate_loss **$122,176,989.38**. Empirical severity mean **$162,925.66**, p99 **$950,695.96**, max **$1,997,720.0**. Gross mean **$12,432,260.53**, var_95 **$17,230,315.16**.\n- Stress: combined +25% frequency +30% severity lifts expected annual loss to **$20,191,186.03**; catastrophe_freq_x2_sev_x1.5 **$37,276,035.75**.\n\nRecommended actions\n- Raise own funds or reduce net exposure immediately; net 99.5% capital deficit **-$10,039,407.84** and gross deficit **-$15,995,320.76**.\n- Improve liquidity and reserves; cover of VaR95 is **0.41** and IBNR is material with 2024 LDF 2.5 driving ultimate.\n- Tighten underwriting and pricing on weather_delay and surety, review retention **$500,000** limit **$5,000,000** against net VaR95 **$13,467,255.01**.\n\nStrategic Risk Friction\nSCR net basis shows marginal surplus **$501,275.33** at 110.0% while 99.5% VaR net and gross capital requirements show material deficits, creating tension between Solvency II SCR adequacy and 1-in-200 capital adequacy.\n\nConfidence & caveats\nConfidence tier full_monte_carlo per tools. 525 claims over 7 accident years across 5 LoBs is thin for tail estimation; IBNR and tail estimates are sensitive and method-dependent."
+  },
+  {
+   "case": "ter_reserves_capital",
+   "business": "terrafirma",
+   "question": "Do we hold enough capital for a weather catastrophe year?",
+   "routed": [
+    "actuary",
+    "capital",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "capital"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "capital": {
+     "ok": true,
+     "seconds": 66.5,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "solvency_ratio",
+      "capital_adequacy_net",
+      "capital_adequacy_gross",
+      "retained_risk_economics",
+      "loss_distribution",
+      "stress_scenarios"
+     ]
+    },
+    "actuary": {
+     "ok": true,
+     "seconds": 95.9,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "capital_test",
+      "stress_scenarios"
+     ]
+    },
+    "risk": {
+     "ok": false,
+     "seconds": 180.0,
+     "error": "timed out after 180s",
+     "tools": []
+    }
+   },
+   "timed_out": [
+    "risk"
+   ],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 93.8,
+   "figures_checked": 32,
+   "ungrounded": [
+    "$10,039,407.84",
+    "$10,039,407.84"
+   ],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 29.3,
+    "processing": 180.0,
+    "synthesizing": 42.8
+   },
+   "wall_s": 267.0,
+   "session_id": "cohort-baseline-ter_reserves_capital-r1",
+   "summary": "No. Current own funds are materially insufficient for a severe weather catastrophe year under both regulatory and economic capital tests, with stressed expected losses exceeding capital by an order of magnitude.\n\n**Key findings**\n- Own funds **$5,500,000** vs Solvency II net SCR **$4,998,724.67** gives SCR ratio **110.0%** with surplus over SCR **$501,275.33** and status warning <120%. Liquidity cover of VaR95 is **0.41**.\n- Net of reinsurance 99.5% capital requirement is **$15,539,407.84** vs capital held **$5,500,000**, deficit **-$10,039,407.84**. Gross 99.5% VaR requirement is **$21,495,320.76**, deficit **-$15,995,320.76**, adequate_at_99_5 false.\n- Shortfall probability is **99.968%** net with expected shortfall given breach **$5,042,351.59**; gross perspective shows shortfall probability **99.984%** with expected shortfall given breach **$6,933,403.34**.\n- Retained risk economics: retention **$500,000** limit **$5,000,000**, expected retained loss **$10,540,683.17**, retained VaR99.5 **$15,539,407.84**, capital backing retained risk **$4,998,724.67**, annual cost of retained risk **$10,940,581.14**.\n- Deterministic stress catastrophe_freq_x2_sev_x1.5 expected annual loss **$37,276,035.75**, +200.0% vs base **$12,425,345.25**. Expected annual loss in capital test basis is **$12,432,260.53**.\n\n**Recommended actions**\n- Raise own funds or reduce net retained exposure before renewal; SCR ratio 110.0% is below 120% threshold.\n- Increase reinsurance protection / lower retention on weather_delay and related lines; current XoL leaves 99.968% shortfall probability at 99.5%.\n- Improve liquidity; a weather catastrophe year under stress implies losses > $37M vs $5.5M capital.\n- Re-run capital test after any reinsurance and review weather_delay frequency/severity separately.\n\n**Strategic Risk Friction**\nSolvency II net SCR shows marginal surplus $501,275.33 at 110.0% ratio while economic 99.5% VaR capital test shows gross deficit -$15,995,320.76 and net deficit -$10,039,407.84, indicating regulatory compliance masks severe economic shortfall.\n\n**Confidence & caveats**\nConfidence tier full_monte_carlo; data 525 claims, accident years 2018-2024, 5 LoBs including weather_delay. Portfolio is mixed lines with thin/volatile weather_delay tail and stress is deterministic scaling, not a full catastrophe model."
+  },
+  {
+   "case": "ter_reinsurance",
+   "business": "terrafirma",
+   "question": "Is our reinsurance programme right for the weather volatility we carry?",
+   "routed": [
+    "actuary",
+    "reinsurance",
+    "risk"
+   ],
+   "route_source": "llm",
+   "route_error": "",
+   "expected": [
+    "actuary",
+    "reinsurance"
+   ],
+   "routing_contained": true,
+   "routing_jaccard": 0.667,
+   "agents": {
+    "actuary": {
+     "ok": true,
+     "seconds": 102.8,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "frequency_model",
+      "severity_model",
+      "ibnr_reserve",
+      "loss_development_triangle",
+      "pricing",
+      "stress_scenarios",
+      "capital_test"
+     ]
+    },
+    "risk": {
+     "ok": true,
+     "seconds": 110.1,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "exposure_movement",
+      "concentration",
+      "emerging_signals",
+      "monte_carlo_var",
+      "stress_scenarios"
+     ]
+    },
+    "reinsurance": {
+     "ok": true,
+     "seconds": 152.4,
+     "error": "",
+     "tools": [
+      "describe_loaded_data",
+      "current_layer_recovery",
+      "simulated_net_position",
+      "retention_optimisation",
+      "alternative_structures",
+      "attachment_sensitivity",
+      "quota_share_vs_excess_of_loss"
+     ]
+    }
+   },
+   "timed_out": [],
+   "synthesis_parse": "json",
+   "friction": true,
+   "grounding_rate": 96.2,
+   "figures_checked": 53,
+   "ungrounded": [
+    "$1,997",
+    "$122,176"
+   ],
+   "determinism_ok": true,
+   "computed_mismatches": {},
+   "timings": {
+    "routing": 20.3,
+    "processing": 152.4,
+    "synthesizing": 148.8
+   },
+   "wall_s": 342.9,
+   "session_id": "cohort-baseline-ter_reinsurance-r1",
+   "summary": "The current per-occurrence XoL 5,000,000 xs 500,000 is not right-sized for weather-driven volatility. Weather_delay dominates weather risk with exposure $443,114,000.0 and loss $27,948,719.0, share_of_loss_pct 32.7, and a red severity signal severity_change_pct 49.4 on a rising frequency trend annual_trend_pct 8.8%. Capital is inadequate for the tail: capital_held $5,500,000 vs capital_required_99_5 $21,495,320.76, deficit -$15,995,320.76, with gross VaR99 $20,252,294.23 and net VaR99 $14,947,301.5 under the current programme. Stress catastrophe_freq_x2_sev_x1.5 lifts expected annual loss to $37,276,035.75 from baseline $12,425,345.25, and the 1-in-200 capital test fails with shortfall_probability_pct 99.984%.\n\nKey findings\n- Frequency is overdispersed and rising: Poisson lambda 75.0 claims/year, dispersion ratio 20.489, annual_trend_pct 8.8%; severity is heavy-tailed with empirical_mean $162,925.66, p99 $950,695.96, max $1,997,720.0.\n- Weather_delay is the dominant weather volatility line: exposure $443,114,000.0, loss $27,948,719.0, claims 157, share_of_loss_pct 32.7, severity_change_pct 49.4, frequency_change_pct 0.4, recent_claims_per_year 22.5, exposure_yoy_pct 97.3.\n- Current XoL provides limited benefit: gross mean $12,432,260.53, net mean $10,540,683.17, expected_recovery $1,891,577.36; historical claims in layer 31, claims exhausting layer 0, largest gross claim $1,997,720.0 well below limit.\n- Capital and tail mismatch: capital_held $5,500,000 vs capital_required_99_5 $21,495,320.76, deficit -$15,995,320.76; net VaR99.5 $15,539,407.84; IBNR $35,603,049.38, ultimate_loss $122,176,989.38.\n- TCoR comparison: per-occurrence XoL TCoR $13,494,210.58 with premium $2,553,629.44; aggregate stop-loss TCoR $12,771,278.25 with premium $671,572.62, TCoR difference $722,932.33.\n\nRecommended actions\n- Increase weather-related aggregate protection and/or limit protection for weather_delay; re-price with indicated_annual_premium $16,774,216.09 vs expected_annual_loss $12,425,345.25.\n- Move primary weather volatility protection to aggregate stop-loss attaching at p75 of gross annual loss, retaining per-occurrence XoL for tail protection.\n- Raise gross capital or purchase additional reinsurance to close the $15,995,320.76 deficit at 99.5% VaR and review retention and reinstatement provisions given frequency trend and severity tail.\n- Tighten weather_delay monitoring and pricing for severity drift and test programme against a weather-specific aggregate scenario.\n\nStrategic Risk Friction\nReinsurance_Manager TCoR optimisation favours raising retention toward $1,959,000 to reduce TCoR from $13,494,210.58 toward $13,098,630.17, while Actuary and Risk_Manager highlight rising frequency trend 8.8% and weather_delay severity_change_pct 49.4 with capital deficit, implying higher net retention would increase capital strain under stress.\n\nConfidence & caveats\nConfidence tier full_monte_carlo for capital; data thin for line-level weather_delay volatility, 7 accident years, 525 claims total, high overdispersion limits precision; 2-year emerging signal window limits robustness."
+  }
+ ]
+}
