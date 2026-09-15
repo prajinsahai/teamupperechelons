@@ -1,0 +1,1385 @@
+{
+ "adq": {
+  "adequate_at_99_5": false,
+  "basis": "net_of_reinsurance",
+  "capital_held": 20000000,
+  "capital_required_99_5": 50720966.91,
+  "capital_surplus_or_deficit": -30720966.91,
+  "confidence_tier": "full_monte_carlo",
+  "expected_annual_loss": 37578559.04,
+  "expected_shortfall_given_breach": 17578559.04,
+  "method": "1-in-200 (99.5% VaR) capital test on simulated annual aggregate loss",
+  "shortfall_probability_pct": 100.0
+ },
+ "adq_gross": {
+  "adequate_at_99_5": false,
+  "basis": "gross",
+  "capital_held": 20000000,
+  "capital_required_99_5": 68018213.75,
+  "capital_surplus_or_deficit": -48018213.75,
+  "confidence_tier": "full_monte_carlo",
+  "expected_annual_loss": 44322735.13,
+  "expected_shortfall_given_breach": 24322735.13,
+  "method": "1-in-200 (99.5% VaR) capital test on simulated annual aggregate loss",
+  "shortfall_probability_pct": 100.0
+ },
+ "adv": {
+  "adverse_development_detected": true,
+  "all_years": [
+   {
+    "accident_year": 2016,
+    "age_months": 108,
+    "claims": 134,
+    "expected_ratio_for_age": -0.061,
+    "reserve_ratio": 0.12,
+    "z_score": 1.38
+   },
+   {
+    "accident_year": 2017,
+    "age_months": 96,
+    "claims": 157,
+    "expected_ratio_for_age": 0.038,
+    "reserve_ratio": 0.102,
+    "z_score": 0.49
+   },
+   {
+    "accident_year": 2018,
+    "age_months": 84,
+    "claims": 138,
+    "expected_ratio_for_age": 0.138,
+    "reserve_ratio": 0.113,
+    "z_score": -0.19
+   },
+   {
+    "accident_year": 2019,
+    "age_months": 72,
+    "claims": 135,
+    "expected_ratio_for_age": 0.238,
+    "reserve_ratio": 0.103,
+    "z_score": -1.03
+   },
+   {
+    "accident_year": 2020,
+    "age_months": 60,
+    "claims": 156,
+    "expected_ratio_for_age": 0.338,
+    "reserve_ratio": 0.147,
+    "z_score": -1.44
+   },
+   {
+    "accident_year": 2021,
+    "age_months": 48,
+    "claims": 160,
+    "expected_ratio_for_age": 0.437,
+    "reserve_ratio": 0.319,
+    "z_score": -0.89
+   },
+   {
+    "accident_year": 2022,
+    "age_months": 36,
+    "claims": 153,
+    "expected_ratio_for_age": 0.537,
+    "reserve_ratio": 0.522,
+    "z_score": -0.12
+   },
+   {
+    "accident_year": 2023,
+    "age_months": 24,
+    "claims": 157,
+    "expected_ratio_for_age": 0.637,
+    "reserve_ratio": 0.708,
+    "z_score": 0.54
+   },
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "claims": 163,
+    "expected_ratio_for_age": 0.736,
+    "reserve_ratio": 0.903,
+    "z_score": 1.26
+   }
+  ],
+  "flagged_accident_years": [
+   {
+    "accident_year": 2016,
+    "age_months": 108,
+    "claims": 134,
+    "expected_ratio_for_age": -0.061,
+    "reserve_ratio": 0.12,
+    "z_score": 1.38
+   },
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "claims": 163,
+    "expected_ratio_for_age": 0.736,
+    "reserve_ratio": 0.903,
+    "z_score": 1.26
+   }
+  ],
+  "method": "reserve/reported ratio vs age-of-year trend; z > 1.0 flagged"
+ },
+ "clauses": {
+  "clauses": {
+   "conditions": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "The insured shall maintain a peer review programme (warranty)."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Notification within 30 days of any circumstance likely to give rise to a claim."
+    }
+   ],
+   "deductibles": [
+    {
+     "amounts": [
+      "USD 1,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Self-insured retention: USD 1,000,000 each claim inclusive of defence costs."
+    },
+    {
+     "amounts": [
+      "USD 100,000"
+     ],
+     "document": "policy.txt",
+     "text": "Deductible for general liability: USD 100,000."
+    }
+   ],
+   "endorsements": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Endorsement 2: Batch clause \u2014 related claims arising from a single cause are treated as one claim first made when the earliest was reported."
+    }
+   ],
+   "exclusions": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Exclusions: This policy does not cover punitive damages where uninsurable, criminal acts, claims arising from services outside the scope of licensure, or bodily injury from asbestos or pollution."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Not covered: claims first made after the policy period unless an extended reporting period is purchased; contractual liability; employment practices."
+    }
+   ],
+   "limits": [
+    {
+     "amounts": [
+      "USD 10,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Limit of Liability: USD 10,000,000 each claim;"
+    },
+    {
+     "amounts": [
+      "USD 1,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Sub-limit: USD 1,000,000 for sexual misconduct;"
+    }
+   ],
+   "territory_period": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Not covered: claims first made after the policy period unless an extended reporting period is purchased; contractual liability; employment practices."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Conditions: Claims must be reported within the policy period or within 60 days thereafter."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Territory: United States."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Policy period: 12 months."
+    }
+   ],
+   "waiting_periods": []
+  },
+  "counts": {
+   "conditions": 2,
+   "deductibles": 2,
+   "endorsements": 1,
+   "exclusions": 2,
+   "limits": 2,
+   "territory_period": 4,
+   "waiting_periods": 0
+  },
+  "documents": [
+   "policy.txt"
+  ],
+  "method": "regex clause categories over sentence-split PDF text"
+ },
+ "cmp": {
+  "aggregate_stop_loss": {
+   "aggregate_deductible": 48697884.74,
+   "aggregate_limit": 19320329.01,
+   "capital_charge": 453422.92,
+   "expected_recovery": 1291897.53,
+   "expected_retained_loss": 43030837.6,
+   "reinsurance_premium": 1744061.67,
+   "retained_var_99_5": 48698624.04,
+   "tcor": 45228322.18
+  },
+  "cheaper_structure": "aggregate_stop_loss",
+  "method": "same pricing basis for both; stop-loss attaches at p75 of gross annual loss, limit to p99.5",
+  "per_occurrence_xol": {
+   "capital_charge": 1051392.63,
+   "expected_recovery": 6744176.09,
+   "expected_retained_loss": 37578559.04,
+   "limit": 10000000,
+   "reinsurance_premium": 9104637.72,
+   "retained_var_99_5": 50720966.91,
+   "retention": 1000000,
+   "tcor": 47734589.39
+  },
+  "tcor_difference": 2506267.21
+ },
+ "conc": {
+  "concentration_level": "moderate",
+  "hhi_by_line": 0.273,
+  "hhi_by_risk_class": 0.287,
+  "method": "HHI (sum of squared shares); > 0.4 high, > 0.25 moderate",
+  "top5_claims": [
+   {
+    "claim_amount": 5376103.0,
+    "claim_id": "AEG-00746",
+    "line_of_business": "property"
+   },
+   {
+    "claim_amount": 3759469.0,
+    "claim_id": "AEG-00529",
+    "line_of_business": "medical_malpractice"
+   },
+   {
+    "claim_amount": 3632252.0,
+    "claim_id": "AEG-00576",
+    "line_of_business": "medical_malpractice"
+   },
+   {
+    "claim_amount": 3609343.0,
+    "claim_id": "AEG-01309",
+    "line_of_business": "general_liability"
+   },
+   {
+    "claim_amount": 3238673.0,
+    "claim_id": "AEG-01110",
+    "line_of_business": "workers_comp"
+   }
+  ],
+  "top5_claims_share_pct": 5.0,
+  "top_line": {
+   "line_of_business": "medical_malpractice",
+   "share_pct": 35.6
+  }
+ },
+ "devp": {
+  "by_accident_year": [
+   {
+    "accident_year": 2016,
+    "claims": 134,
+    "paid": 29028163.0,
+    "reported": 32914833.0,
+    "reserve": 3954303.0,
+    "reserve_ratio": 0.12
+   },
+   {
+    "accident_year": 2017,
+    "claims": 157,
+    "paid": 30534896.0,
+    "reported": 33909671.0,
+    "reserve": 3472517.0,
+    "reserve_ratio": 0.102
+   },
+   {
+    "accident_year": 2018,
+    "claims": 138,
+    "paid": 27170309.0,
+    "reported": 30430342.0,
+    "reserve": 3436584.0,
+    "reserve_ratio": 0.113
+   },
+   {
+    "accident_year": 2019,
+    "claims": 135,
+    "paid": 31400730.0,
+    "reported": 34877544.0,
+    "reserve": 3580451.0,
+    "reserve_ratio": 0.103
+   },
+   {
+    "accident_year": 2020,
+    "claims": 156,
+    "paid": 40714553.0,
+    "reported": 47625653.0,
+    "reserve": 7021827.0,
+    "reserve_ratio": 0.147
+   },
+   {
+    "accident_year": 2021,
+    "claims": 160,
+    "paid": 32565906.0,
+    "reported": 47846602.0,
+    "reserve": 15280696.0,
+    "reserve_ratio": 0.319
+   },
+   {
+    "accident_year": 2022,
+    "claims": 153,
+    "paid": 24633683.0,
+    "reported": 51486336.0,
+    "reserve": 26852653.0,
+    "reserve_ratio": 0.522
+   },
+   {
+    "accident_year": 2023,
+    "claims": 157,
+    "paid": 14530449.0,
+    "reported": 49845486.0,
+    "reserve": 35315037.0,
+    "reserve_ratio": 0.708
+   },
+   {
+    "accident_year": 2024,
+    "claims": 163,
+    "paid": 6155915.0,
+    "reported": 63412784.0,
+    "reserve": 57256869.0,
+    "reserve_ratio": 0.903
+   }
+  ],
+  "claims_by_dev_month": {
+   "12": 163,
+   "24": 157,
+   "36": 153,
+   "48": 160,
+   "60": 156,
+   "72": 564
+  },
+  "method": "paid/reported by 12-month development bucket; reserve/reported by accident year",
+  "paid_to_reported_by_dev_month": {
+   "12": 0.097,
+   "24": 0.292,
+   "36": 0.478,
+   "48": 0.681,
+   "60": 0.855,
+   "72": 0.894
+  }
+ },
+ "emerg": {
+  "latest_year": 2024,
+  "method": "last 2 years vs earlier years; >30% rise = red, >10% = amber",
+  "red_flags": [
+   "workers_comp"
+  ],
+  "signals": [
+   {
+    "frequency_change_pct": 35.2,
+    "line_of_business": "workers_comp",
+    "recent_claims_per_year": 45.0,
+    "severity_change_pct": 54.6,
+    "signal": "red"
+   },
+   {
+    "frequency_change_pct": 6.7,
+    "line_of_business": "medical_malpractice",
+    "recent_claims_per_year": 73.5,
+    "severity_change_pct": 27.0,
+    "signal": "amber"
+   },
+   {
+    "frequency_change_pct": 21.0,
+    "line_of_business": "property",
+    "recent_claims_per_year": 18.5,
+    "severity_change_pct": 19.7,
+    "signal": "amber"
+   },
+   {
+    "frequency_change_pct": -23.7,
+    "line_of_business": "general_liability",
+    "recent_claims_per_year": 23.0,
+    "severity_change_pct": 6.1,
+    "signal": "green"
+   }
+  ],
+  "window_years": 2
+ },
+ "expo": {
+  "by_line": [
+   {
+    "claims": 257.0,
+    "exposure": 1335682000.0,
+    "line_of_business": "general_liability",
+    "loss": 76020120.0,
+    "share_of_loss_pct": 19.5
+   },
+   {
+    "claims": 629.0,
+    "exposure": 3222500000.0,
+    "line_of_business": "medical_malpractice",
+    "loss": 138520837.0,
+    "share_of_loss_pct": 35.6
+   },
+   {
+    "claims": 144.0,
+    "exposure": 782933000.0,
+    "line_of_business": "property",
+    "loss": 63188108.0,
+    "share_of_loss_pct": 16.2
+   },
+   {
+    "claims": 323.0,
+    "exposure": 1692027000.0,
+    "line_of_business": "workers_comp",
+    "loss": 111589954.0,
+    "share_of_loss_pct": 28.7
+   }
+  ],
+  "by_year": [
+   {
+    "accident_year": 2016,
+    "claims": 134.0,
+    "exposure": 670459000.0,
+    "exposure_yoy_pct": null,
+    "loss": 31955121.0,
+    "loss_ratio_to_exposure_pct": 4.77
+   },
+   {
+    "accident_year": 2017,
+    "claims": 157.0,
+    "exposure": 828123000.0,
+    "exposure_yoy_pct": 23.5,
+    "loss": 33763504.0,
+    "loss_ratio_to_exposure_pct": 4.08
+   },
+   {
+    "accident_year": 2018,
+    "claims": 138.0,
+    "exposure": 742735000.0,
+    "exposure_yoy_pct": -10.3,
+    "loss": 29909102.0,
+    "loss_ratio_to_exposure_pct": 4.03
+   },
+   {
+    "accident_year": 2019,
+    "claims": 135.0,
+    "exposure": 741816000.0,
+    "exposure_yoy_pct": -0.1,
+    "loss": 34686778.0,
+    "loss_ratio_to_exposure_pct": 4.68
+   },
+   {
+    "accident_year": 2020,
+    "claims": 156.0,
+    "exposure": 749350000.0,
+    "exposure_yoy_pct": 1.0,
+    "loss": 47419230.0,
+    "loss_ratio_to_exposure_pct": 6.33
+   },
+   {
+    "accident_year": 2021,
+    "claims": 160.0,
+    "exposure": 871673000.0,
+    "exposure_yoy_pct": 16.3,
+    "loss": 47262973.0,
+    "loss_ratio_to_exposure_pct": 5.42
+   },
+   {
+    "accident_year": 2022,
+    "claims": 153.0,
+    "exposure": 755516000.0,
+    "exposure_yoy_pct": -13.3,
+    "loss": 51135691.0,
+    "loss_ratio_to_exposure_pct": 6.77
+   },
+   {
+    "accident_year": 2023,
+    "claims": 157.0,
+    "exposure": 796480000.0,
+    "exposure_yoy_pct": 5.4,
+    "loss": 49598414.0,
+    "loss_ratio_to_exposure_pct": 6.23
+   },
+   {
+    "accident_year": 2024,
+    "claims": 163.0,
+    "exposure": 876990000.0,
+    "exposure_yoy_pct": 10.1,
+    "loss": 63588206.0,
+    "loss_ratio_to_exposure_pct": 7.25
+   }
+  ],
+  "method": "sums by accident year and line; loss ratio to exposure"
+ },
+ "freq": {
+  "annual_trend_pct": 1.9,
+  "claims_per_year": {
+   "2016": 134,
+   "2017": 157,
+   "2018": 138,
+   "2019": 135,
+   "2020": 156,
+   "2021": 160,
+   "2022": 153,
+   "2023": 157,
+   "2024": 163
+  },
+  "dispersion_ratio": 0.861,
+  "distribution": "poisson",
+  "method": "Poisson MLE (lambda = mean count/year); NB flagged when var/mean > 1.5",
+  "poisson_lambda": 150.333,
+  "variance": 129.5,
+  "years": 9
+ },
+ "ibnr": {
+  "assumptions": {
+   "reporting_pattern_cum_pct_by_age_months": {
+    "12": 0.4,
+    "24": 0.7,
+    "36": 0.88,
+    "48": 0.97,
+    "60": 1.0
+   }
+  },
+  "by_accident_year": [
+   {
+    "accident_year": 2016,
+    "age_months": 108,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 32914833.0,
+    "ultimate": 32914833.0
+   },
+   {
+    "accident_year": 2017,
+    "age_months": 96,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 33909671.0,
+    "ultimate": 33909671.0
+   },
+   {
+    "accident_year": 2018,
+    "age_months": 84,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 30430342.0,
+    "ultimate": 30430342.0
+   },
+   {
+    "accident_year": 2019,
+    "age_months": 72,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 34877544.0,
+    "ultimate": 34877544.0
+   },
+   {
+    "accident_year": 2020,
+    "age_months": 60,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 47625653.0,
+    "ultimate": 47625653.0
+   },
+   {
+    "accident_year": 2021,
+    "age_months": 48,
+    "ibnr": 1479791.81,
+    "ldf": 1.0309,
+    "pct_reported": 0.97,
+    "reported": 47846602.0,
+    "ultimate": 49326393.81
+   },
+   {
+    "accident_year": 2022,
+    "age_months": 36,
+    "ibnr": 7020864.0,
+    "ldf": 1.1364,
+    "pct_reported": 0.88,
+    "reported": 51486336.0,
+    "ultimate": 58507200.0
+   },
+   {
+    "accident_year": 2023,
+    "age_months": 24,
+    "ibnr": 21362351.14,
+    "ldf": 1.4286,
+    "pct_reported": 0.7,
+    "reported": 49845486.0,
+    "ultimate": 71207837.14
+   },
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "ibnr": 95119176.0,
+    "ldf": 2.5,
+    "pct_reported": 0.4,
+    "reported": 63412784.0,
+    "ultimate": 158531960.0
+   }
+  ],
+  "case_reserves": 156170937.0,
+  "ibnr": 124982182.95,
+  "method": "loss development factor (reported incurred x LDF), valuation at year end",
+  "paid_to_date": 236734604.0,
+  "portfolio_loss": 392349251.0,
+  "ultimate_loss": 517331433.95,
+  "valuation_year": 2024
+ },
+ "intel": {
+  "anomalous_amount_total": 116122703.0,
+  "anomalous_top5": [
+   "AEG-00746",
+   "AEG-01110",
+   "AEG-01017",
+   "AEG-01309",
+   "AEG-00699"
+  ],
+  "anomaly_count": 68,
+  "anomaly_rate_pct": 5.0,
+  "claim_count": 1353,
+  "historical_mean_severity": 287745.03,
+  "latest_year": 2024,
+  "latest_year_mean_severity": 390111.69,
+  "predicted_mean_severity": 689959.03,
+  "prior_years_mean_severity": 315175.75,
+  "severity_by_year": {
+   "2016": 238471.05,
+   "2017": 215054.17,
+   "2018": 216732.62,
+   "2019": 256939.1,
+   "2020": 303969.42,
+   "2021": 295393.58,
+   "2022": 334220.2,
+   "2023": 315913.46,
+   "2024": 390111.69
+  },
+  "severity_change_pct": 23.8
+ },
+ "large_loss": {
+  "early_large_claims": [
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01309",
+    "development_month": 1,
+    "line_of_business": "general_liability",
+    "reported_amount": 3906984.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01228",
+    "development_month": 9,
+    "line_of_business": "medical_malpractice",
+    "reported_amount": 2146127.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01238",
+    "development_month": 2,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1981106.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01342",
+    "development_month": 5,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1905583.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01195",
+    "development_month": 1,
+    "line_of_business": "medical_malpractice",
+    "reported_amount": 1789231.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01322",
+    "development_month": 4,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1735521.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01315",
+    "development_month": 6,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1662187.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01321",
+    "development_month": 10,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1475873.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01197",
+    "development_month": 7,
+    "line_of_business": "medical_malpractice",
+    "reported_amount": 1458015.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "AEG-01333",
+    "development_month": 9,
+    "line_of_business": "workers_comp",
+    "reported_amount": 1401757.0
+   }
+  ],
+  "early_large_claims_count": 29,
+  "method": "claims <= 12 dev months with reported >= p90; claims with reserve >= 80% of reported",
+  "mostly_unpaid_claims_count": 170,
+  "mostly_unpaid_total_reserve": 59402182.0,
+  "severity_p90": 689810.6
+ },
+ "leak": {
+  "assumed_cpi_pct": 3.0,
+  "closed_claims": 645,
+  "late_reported_claims_over_90d": 8,
+  "leakage_rate_pct": 0.23,
+  "leakage_total": 556290.0,
+  "litigated_mean_severity": 295746.0,
+  "litigation_rate_pct": 32.8,
+  "litigation_severity_multiple": 1.04,
+  "mean_report_lag_days": 23.7,
+  "method": "leakage = paid in excess of reported incurred (overpayment); RF outlier = paid > 2x RandomForest-predicted severity; social inflation = log-linear severity trend minus CPI",
+  "non_litigated_mean_severity": 283836.96,
+  "overpaid_claim_count": 77,
+  "rf_outlier_paid_count": 158,
+  "severity_trend_pct_per_year": 7.1,
+  "social_inflation_pct_per_year": 4.1,
+  "top_overpaid_claims": [
+   {
+    "claim_id": "AEG-00393",
+    "line_of_business": "property",
+    "overpaid": 76936.0,
+    "paid_amount": 878258.0,
+    "predicted_severity": 246879.25
+   },
+   {
+    "claim_id": "AEG-00479",
+    "line_of_business": "general_liability",
+    "overpaid": 52687.0,
+    "paid_amount": 1463159.0,
+    "predicted_severity": 142512.32
+   },
+   {
+    "claim_id": "AEG-00265",
+    "line_of_business": "workers_comp",
+    "overpaid": 39988.0,
+    "paid_amount": 635844.0,
+    "predicted_severity": 100404.48
+   },
+   {
+    "claim_id": "AEG-00686",
+    "line_of_business": "general_liability",
+    "overpaid": 26981.0,
+    "paid_amount": 534318.0,
+    "predicted_severity": 143134.73
+   },
+   {
+    "claim_id": "AEG-00137",
+    "line_of_business": "workers_comp",
+    "overpaid": 23523.0,
+    "paid_amount": 466074.0,
+    "predicted_severity": 296026.2
+   },
+   {
+    "claim_id": "AEG-00710",
+    "line_of_business": "property",
+    "overpaid": 21869.0,
+    "paid_amount": 406757.0,
+    "predicted_severity": 4304043.68
+   },
+   {
+    "claim_id": "AEG-00711",
+    "line_of_business": "workers_comp",
+    "overpaid": 20411.0,
+    "paid_amount": 550821.0,
+    "predicted_severity": 2217518.69
+   },
+   {
+    "claim_id": "AEG-00369",
+    "line_of_business": "medical_malpractice",
+    "overpaid": 18028.0,
+    "paid_amount": 501203.0,
+    "predicted_severity": 111677.02
+   }
+  ]
+ },
+ "pricing": {
+  "expected_annual_loss": 44278178.32,
+  "expense_load": 0.25,
+  "frequency_per_year": 150.333,
+  "indicated_annual_premium": 59775540.73,
+  "mean_severity": 294533.99,
+  "method": "pure premium = lambda x E[severity]; loaded for expenses and risk margin",
+  "risk_margin": 0.1
+ },
+ "qs": {
+  "cheaper_structure": "quota_share",
+  "excess_of_loss": {
+   "capital_charge": 1051392.63,
+   "expected_recovery": 6744176.09,
+   "expected_retained_loss": 37578559.04,
+   "limit": 10000000,
+   "reinsurance_premium": 9104637.72,
+   "retained_var_99_5": 50720966.91,
+   "retention": 1000000,
+   "tcor": 47734589.39
+  },
+  "method": "QS premium = gross premium proxy x cession x (1 - commission); same capital-charge basis as XoL",
+  "quota_share": {
+   "capital_charge": 1326946.8,
+   "ceding_commission": 0.25,
+   "cession_pct": 0.3,
+   "expected_recovery": 13296820.54,
+   "expected_retained_loss": 31025914.59,
+   "reinsurance_premium": 13463030.8,
+   "retained_var_99_5": 47612749.63,
+   "tcor": 45815892.19
+  },
+  "tail_protection_note": "XoL caps individual large losses; quota share shares every loss pro rata and leaves the tail proportionally retained.",
+  "tcor_difference": 1918697.2
+ },
+ "rec": {
+  "claims_exhausting_layer": 0,
+  "claims_in_layer": 68,
+  "expected_recovery": 48670363.0,
+  "gross_loss": 389319019.0,
+  "largest_gross_claim": 5376103.0,
+  "limit": 10000000.0,
+  "method": "per-occurrence excess of loss, 10,000,000 xs 1,000,000",
+  "net_loss": 340648656.0,
+  "retention": 1000000.0,
+  "uncovered_above_layer": 0.0
+ },
+ "rrc": {
+  "annual_cost_of_retained_risk": 38629951.67,
+  "capital_backing_retained_risk": 13142407.87,
+  "cost_of_capital_rate": 0.08,
+  "expected_recovery": 6744176.09,
+  "expected_retained_loss": 37578559.04,
+  "limit": 10000000,
+  "method": "expected retained loss + cost of capital on (VaR99.5 - mean) of retained distribution",
+  "retained_var_99_5": 50720966.91,
+  "retention": 1000000
+ },
+ "sev": {
+  "empirical_mean": 287745.03,
+  "empirical_median": 146369.0,
+  "lognormal_mean": 294533.99,
+  "lognormal_mu": 11.887,
+  "lognormal_p99": 2307293.82,
+  "lognormal_sigma": 1.1884,
+  "max": 5376103.0,
+  "method": "lognormal MLE on log(claim_amount)",
+  "n": 1353,
+  "p90": 689810.6,
+  "p99": 2000000.0,
+  "tail": "heavy"
+ },
+ "shift": {
+  "by_line": [
+   {
+    "latest_mean_severity": 528022.86,
+    "latest_year_claims": 43,
+    "line_of_business": "workers_comp",
+    "prior_avg_claims_per_year": 35.0,
+    "prior_mean_severity": 317446.33,
+    "severity_change_pct": 66.3
+   },
+   {
+    "latest_mean_severity": 298473.44,
+    "latest_year_claims": 80,
+    "line_of_business": "medical_malpractice",
+    "prior_avg_claims_per_year": 68.6,
+    "prior_mean_severity": 208821.42,
+    "severity_change_pct": 42.9
+   },
+   {
+    "latest_mean_severity": 540060.11,
+    "latest_year_claims": 18,
+    "line_of_business": "property",
+    "prior_avg_claims_per_year": 15.8,
+    "prior_mean_severity": 424341.48,
+    "severity_change_pct": 27.3
+   },
+   {
+    "latest_mean_severity": 331103.0,
+    "latest_year_claims": 22,
+    "line_of_business": "general_liability",
+    "prior_avg_claims_per_year": 29.4,
+    "prior_mean_severity": 292493.0,
+    "severity_change_pct": 13.2
+   }
+  ],
+  "latest_year": 2024,
+  "method": "latest accident year vs prior-year averages, per line"
+ },
+ "sim": {
+  "confidence_tier": "full_monte_carlo",
+  "expected_recovery": 6744176.09,
+  "frequency_lambda": 150.333,
+  "gross": {
+   "max": 125329685.11,
+   "mean": 44322735.13,
+   "p50": 43700852.61,
+   "std": 7337369.46,
+   "tvar_99": 70043231.98,
+   "var_95": 57075911.15,
+   "var_99": 64654206.81,
+   "var_99_5": 68018213.75
+  },
+  "limit": 10000000,
+  "method": "Monte Carlo, Poisson frequency x lognormal severity, per-occurrence XoL applied per claim",
+  "net_of_reinsurance": {
+   "max": 109779023.47,
+   "mean": 37578559.04,
+   "p50": 37431364.17,
+   "std": 4621672.01,
+   "tvar_99": 52426952.19,
+   "var_95": 45204202.3,
+   "var_99": 49004334.43,
+   "var_99_5": 50720966.91
+  },
+  "paths": 26607,
+  "retention": 1000000,
+  "severity_lognormal": {
+   "mu": 11.887,
+   "sigma": 1.1884
+  }
+ },
+ "sim_gross": {
+  "confidence_tier": "full_monte_carlo",
+  "expected_recovery": 0.0,
+  "frequency_lambda": 150.333,
+  "gross": {
+   "max": 125329685.11,
+   "mean": 44322735.13,
+   "p50": 43700852.61,
+   "std": 7337369.46,
+   "tvar_99": 70043231.98,
+   "var_95": 57075911.15,
+   "var_99": 64654206.81,
+   "var_99_5": 68018213.75
+  },
+  "limit": null,
+  "method": "Monte Carlo, Poisson frequency x lognormal severity, per-occurrence XoL applied per claim",
+  "net_of_reinsurance": null,
+  "paths": 26607,
+  "retention": null,
+  "severity_lognormal": {
+   "mu": 11.887,
+   "sigma": 1.1884
+  }
+ },
+ "solv": {
+  "basis": "net_of_reinsurance",
+  "case_reserves_carried": 156170937.0,
+  "confidence_tier": "full_monte_carlo",
+  "expected_annual_loss": 37578559.04,
+  "liquidity_cover_of_var95": 0.44,
+  "method": "SCR = VaR99.5 - mean of simulated annual loss; ratio = own funds / SCR; warn < 120%, breach < 100%",
+  "own_funds": 20000000,
+  "scr": 13142407.87,
+  "scr_ratio_pct": 152.2,
+  "status": "adequate",
+  "surplus_over_scr": 6857592.13,
+  "var_99_5": 50720966.91
+ },
+ "stress": {
+  "base_expected_annual_loss": 44278178.32,
+  "method": "deterministic scaling of fitted lambda and lognormal mean",
+  "scenarios": [
+   {
+    "change_vs_base_pct": 0.0,
+    "expected_annual_loss": 44278178.32,
+    "frequency_multiplier": 1.0,
+    "scenario": "base",
+    "severity_multiplier": 1.0
+   },
+   {
+    "change_vs_base_pct": 25.0,
+    "expected_annual_loss": 55347722.9,
+    "frequency_multiplier": 1.25,
+    "scenario": "frequency_+25%",
+    "severity_multiplier": 1.0
+   },
+   {
+    "change_vs_base_pct": 30.0,
+    "expected_annual_loss": 57561631.81,
+    "frequency_multiplier": 1.0,
+    "scenario": "severity_+30%",
+    "severity_multiplier": 1.3
+   },
+   {
+    "change_vs_base_pct": 62.5,
+    "expected_annual_loss": 71952039.77,
+    "frequency_multiplier": 1.25,
+    "scenario": "combined_+25%_+30%",
+    "severity_multiplier": 1.3
+   },
+   {
+    "change_vs_base_pct": 200.0,
+    "expected_annual_loss": 132834534.96,
+    "frequency_multiplier": 2.0,
+    "scenario": "catastrophe_freq_x2_sev_x1.5",
+    "severity_multiplier": 1.5
+   }
+  ]
+ },
+ "sweep": {
+  "cost_of_capital": 0.08,
+  "limit": 10000000,
+  "loading": 0.35,
+  "method": "TCoR = premium (expected ceded x (1+loading)) + expected retained loss + CoC x (VaR99.5 - mean)",
+  "optimal_retention": 3449000.0,
+  "optimal_tcor": 46145977.02,
+  "sweep": [
+   {
+    "capital_charge": 610059.96,
+    "expected_recovery": 26182574.45,
+    "expected_retained_loss": 18140160.68,
+    "limit": 10000000,
+    "reinsurance_premium": 35346475.51,
+    "retained_var_99_5": 25765910.12,
+    "retention": 172000.0,
+    "tcor": 54096696.14
+   },
+   {
+    "capital_charge": 634157.71,
+    "expected_recovery": 21731833.99,
+    "expected_retained_loss": 22590901.14,
+    "limit": 10000000,
+    "reinsurance_premium": 29337975.89,
+    "retained_var_99_5": 30517872.56,
+    "retention": 250000,
+    "tcor": 52563034.74
+   },
+   {
+    "capital_charge": 687130.54,
+    "expected_recovery": 17796363.71,
+    "expected_retained_loss": 26526371.42,
+    "limit": 10000000,
+    "reinsurance_premium": 24025091.01,
+    "retained_var_99_5": 35115503.21,
+    "retention": 345000.0,
+    "tcor": 51238592.97
+   },
+   {
+    "capital_charge": 799303.37,
+    "expected_recovery": 13441067.5,
+    "expected_retained_loss": 30881667.63,
+    "limit": 10000000,
+    "reinsurance_premium": 18145441.12,
+    "retained_var_99_5": 40872959.77,
+    "retention": 500000,
+    "tcor": 49826412.13
+   },
+   {
+    "capital_charge": 904866.16,
+    "expected_recovery": 10038465.14,
+    "expected_retained_loss": 34284269.99,
+    "limit": 10000000,
+    "reinsurance_premium": 13551927.94,
+    "retained_var_99_5": 45595096.94,
+    "retention": 690000.0,
+    "tcor": 48741064.09
+   },
+   {
+    "capital_charge": 1051392.63,
+    "expected_recovery": 6744176.09,
+    "expected_retained_loss": 37578559.04,
+    "limit": 10000000,
+    "reinsurance_premium": 9104637.72,
+    "retained_var_99_5": 50720966.91,
+    "retention": 1000000,
+    "tcor": 47734589.39
+   },
+   {
+    "capital_charge": 1064624.88,
+    "expected_recovery": 6477561.55,
+    "expected_retained_loss": 37845173.58,
+    "limit": 10000000,
+    "reinsurance_premium": 8744708.09,
+    "retained_var_99_5": 51152984.59,
+    "retention": 1035000.0,
+    "tcor": 47654506.55
+   },
+   {
+    "capital_charge": 1171899.9,
+    "expected_recovery": 4511113.41,
+    "expected_retained_loss": 39811621.72,
+    "limit": 10000000,
+    "reinsurance_premium": 6090003.1,
+    "retained_var_99_5": 54460370.53,
+    "retention": 1380000.0,
+    "tcor": 47073524.73
+   },
+   {
+    "capital_charge": 1289989.0,
+    "expected_recovery": 2642360.58,
+    "expected_retained_loss": 41680374.55,
+    "limit": 10000000,
+    "reinsurance_premium": 3567186.78,
+    "retained_var_99_5": 57805236.99,
+    "retention": 2000000,
+    "tcor": 46537550.33
+   },
+   {
+    "capital_charge": 1298919.69,
+    "expected_recovery": 2506412.78,
+    "expected_retained_loss": 41816322.35,
+    "limit": 10000000,
+    "reinsurance_premium": 3383657.25,
+    "retained_var_99_5": 58052818.5,
+    "retention": 2069000.0,
+    "tcor": 46498899.3
+   },
+   {
+    "capital_charge": 1459163.14,
+    "expected_recovery": 1040224.99,
+    "expected_retained_loss": 43282510.14,
+    "limit": 10000000,
+    "reinsurance_premium": 1404303.74,
+    "retained_var_99_5": 61522049.45,
+    "retention": 3449000.0,
+    "tcor": 46145977.02
+   }
+  ]
+ },
+ "tri": {
+  "age_to_age_factors": {
+   "12-24": 1.75,
+   "24-36": 1.2571,
+   "36-48": 1.1023,
+   "48-60": 1.0309,
+   "60-72": 1.0,
+   "72-84": 1.0,
+   "84-96": 1.0,
+   "96-108": 1.0
+  },
+  "bucket_months": 12,
+  "buckets": [
+   12,
+   24,
+   36,
+   48,
+   60,
+   72,
+   84,
+   96,
+   108
+  ],
+  "by_accident_year": [
+   {
+    "accident_year": 2016,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 32914833.0,
+    "ibnr": 0.0,
+    "latest_bucket": 108,
+    "reported_to_date": 32914833.0
+   },
+   {
+    "accident_year": 2017,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 33909671.0,
+    "ibnr": 0.0,
+    "latest_bucket": 96,
+    "reported_to_date": 33909671.0
+   },
+   {
+    "accident_year": 2018,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 30430342.0,
+    "ibnr": 0.0,
+    "latest_bucket": 84,
+    "reported_to_date": 30430342.0
+   },
+   {
+    "accident_year": 2019,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 34877544.0,
+    "ibnr": 0.0,
+    "latest_bucket": 72,
+    "reported_to_date": 34877544.0
+   },
+   {
+    "accident_year": 2020,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 47625653.0,
+    "ibnr": 0.0,
+    "latest_bucket": 60,
+    "reported_to_date": 47625653.0
+   },
+   {
+    "accident_year": 2021,
+    "cdf_to_ultimate": 1.0309,
+    "chain_ladder_ultimate": 49325062.0,
+    "ibnr": 1478460.0,
+    "latest_bucket": 48,
+    "reported_to_date": 47846602.0
+   },
+   {
+    "accident_year": 2022,
+    "cdf_to_ultimate": 1.1364,
+    "chain_ladder_ultimate": 58509072.23,
+    "ibnr": 7022736.23,
+    "latest_bucket": 36,
+    "reported_to_date": 51486336.0
+   },
+   {
+    "accident_year": 2023,
+    "cdf_to_ultimate": 1.4285,
+    "chain_ladder_ultimate": 71204276.75,
+    "ibnr": 21358790.75,
+    "latest_bucket": 24,
+    "reported_to_date": 49845486.0
+   },
+   {
+    "accident_year": 2024,
+    "cdf_to_ultimate": 2.4999,
+    "chain_ladder_ultimate": 158525618.72,
+    "ibnr": 95112834.72,
+    "latest_bucket": 12,
+    "reported_to_date": 63412784.0
+   }
+  ],
+  "cdf_to_ultimate": {
+   "108": 1.0,
+   "12": 2.4999,
+   "24": 1.4285,
+   "36": 1.1364,
+   "48": 1.0309,
+   "60": 1.0,
+   "72": 1.0,
+   "84": 1.0,
+   "96": 1.0
+  },
+  "method": "triangle reconstructed from claim snapshots using report lag and the reporting pattern assumption; volume-weighted age-to-age; chain-ladder ultimate",
+  "total_chain_ladder_ibnr": 124972821.7,
+  "triangle": {
+   "2016": {
+    "108": 32914833.0,
+    "12": 13165933.2,
+    "24": 23040383.1,
+    "36": 28965053.04,
+    "48": 31927388.01,
+    "60": 32914833.0,
+    "72": 32914833.0,
+    "84": 32914833.0,
+    "96": 32914833.0
+   },
+   "2017": {
+    "108": null,
+    "12": 13563868.4,
+    "24": 23736769.7,
+    "36": 29840510.48,
+    "48": 32892380.87,
+    "60": 33909671.0,
+    "72": 33909671.0,
+    "84": 33909671.0,
+    "96": 33909671.0
+   },
+   "2018": {
+    "108": null,
+    "12": 12172136.8,
+    "24": 21301239.4,
+    "36": 26778700.96,
+    "48": 29517431.74,
+    "60": 30430342.0,
+    "72": 30430342.0,
+    "84": 30430342.0,
+    "96": null
+   },
+   "2019": {
+    "108": null,
+    "12": 13951017.6,
+    "24": 24414280.8,
+    "36": 30692238.72,
+    "48": 33831217.68,
+    "60": 34877544.0,
+    "72": 34877544.0,
+    "84": null,
+    "96": null
+   },
+   "2020": {
+    "108": null,
+    "12": 19050261.2,
+    "24": 33337957.1,
+    "36": 41910574.64,
+    "48": 46196883.41,
+    "60": 47625653.0,
+    "72": null,
+    "84": null,
+    "96": null
+   },
+   "2021": {
+    "108": null,
+    "12": 19730557.53,
+    "24": 34528475.67,
+    "36": 43407226.56,
+    "48": 47846602.0,
+    "60": null,
+    "72": null,
+    "84": null,
+    "96": null
+   },
+   "2022": {
+    "108": null,
+    "12": 23402880.0,
+    "24": 40955040.0,
+    "36": 51486336.0,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null,
+    "96": null
+   },
+   "2023": {
+    "108": null,
+    "12": 28483134.86,
+    "24": 49845486.0,
+    "36": null,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null,
+    "96": null
+   },
+   "2024": {
+    "108": null,
+    "12": 63412784.0,
+    "24": null,
+    "36": null,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null,
+    "96": null
+   }
+  }
+ }
+}

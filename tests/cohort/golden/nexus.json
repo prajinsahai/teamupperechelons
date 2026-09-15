@@ -1,0 +1,1218 @@
+{
+ "adq": {
+  "adequate_at_99_5": false,
+  "basis": "net_of_reinsurance",
+  "capital_held": 50000000,
+  "capital_required_99_5": 57406548.58,
+  "capital_surplus_or_deficit": -7406548.58,
+  "confidence_tier": "benchmark_thin_data",
+  "expected_annual_loss": 14990655.02,
+  "expected_shortfall_given_breach": 43295176.83,
+  "method": "1-in-200 (99.5% VaR) capital test on simulated annual aggregate loss",
+  "shortfall_probability_pct": 0.645
+ },
+ "adq_gross": {
+  "adequate_at_99_5": false,
+  "basis": "gross",
+  "capital_held": 50000000,
+  "capital_required_99_5": 96768306.66,
+  "capital_surplus_or_deficit": -46768306.66,
+  "confidence_tier": "benchmark_thin_data",
+  "expected_annual_loss": 23831844.5,
+  "expected_shortfall_given_breach": 20579956.91,
+  "method": "1-in-200 (99.5% VaR) capital test on simulated annual aggregate loss",
+  "shortfall_probability_pct": 4.895
+ },
+ "adv": {
+  "adverse_development_detected": true,
+  "all_years": [
+   {
+    "accident_year": 2018,
+    "age_months": 84,
+    "claims": 15,
+    "expected_ratio_for_age": 0.021,
+    "reserve_ratio": 0.099,
+    "z_score": 0.76
+   },
+   {
+    "accident_year": 2019,
+    "age_months": 72,
+    "claims": 11,
+    "expected_ratio_for_age": 0.09,
+    "reserve_ratio": 0.089,
+    "z_score": -0.01
+   },
+   {
+    "accident_year": 2020,
+    "age_months": 60,
+    "claims": 17,
+    "expected_ratio_for_age": 0.16,
+    "reserve_ratio": 0.103,
+    "z_score": -0.56
+   },
+   {
+    "accident_year": 2021,
+    "age_months": 48,
+    "claims": 28,
+    "expected_ratio_for_age": 0.229,
+    "reserve_ratio": 0.28,
+    "z_score": 0.49
+   },
+   {
+    "accident_year": 2022,
+    "age_months": 36,
+    "claims": 16,
+    "expected_ratio_for_age": 0.299,
+    "reserve_ratio": 0.111,
+    "z_score": -1.82
+   },
+   {
+    "accident_year": 2023,
+    "age_months": 24,
+    "claims": 22,
+    "expected_ratio_for_age": 0.368,
+    "reserve_ratio": 0.358,
+    "z_score": -0.1
+   },
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "claims": 35,
+    "expected_ratio_for_age": 0.438,
+    "reserve_ratio": 0.566,
+    "z_score": 1.24
+   }
+  ],
+  "flagged_accident_years": [
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "claims": 35,
+    "expected_ratio_for_age": 0.438,
+    "reserve_ratio": 0.566,
+    "z_score": 1.24
+   }
+  ],
+  "method": "reserve/reported ratio vs age-of-year trend; z > 1.0 flagged"
+ },
+ "clauses": {
+  "clauses": {
+   "conditions": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Conditions: Notification within 72 hours of discovery of a security event is a condition precedent."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Multi-factor authentication must be maintained on all privileged accounts (warranty)."
+    }
+   ],
+   "deductibles": [
+    {
+     "amounts": [
+      "USD 500,000"
+     ],
+     "document": "policy.txt",
+     "text": "Deductible: USD 500,000 each claim."
+    },
+    {
+     "amounts": [
+      "USD 2,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Retention for systemic events affecting more than 50 tenants: USD 2,000,000."
+    }
+   ],
+   "endorsements": [
+    {
+     "amounts": [
+      "USD 2,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Endorsement 7: Extension for cryptojacking and ransomware negotiation costs, sub-limit USD 2,000,000."
+    }
+   ],
+   "exclusions": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Exclusions: This policy does not cover loss arising from war or state-sponsored cyber operations attributed by a competent authority; infrastructure failure of a public utility; unencrypted portable devices; prior known circumstances."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Not covered: betterment of systems; contractual penalties beyond those the insured would have owed absent contract; loss of intellectual property value."
+    }
+   ],
+   "limits": [
+    {
+     "amounts": [
+      "USD 25,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Limit of Liability: USD 25,000,000 each claim and in the aggregate."
+    },
+    {
+     "amounts": [
+      "USD 5,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Sub-limit: USD 5,000,000 for regulatory fines and penalties where insurable by law."
+    },
+    {
+     "amounts": [
+      "USD 10,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Business interruption is subject to a waiting period of 12 hours before cover attaches; dependent business interruption sub-limit USD 10,000,000."
+    },
+    {
+     "amounts": [
+      "USD 2,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Endorsement 7: Extension for cryptojacking and ransomware negotiation costs, sub-limit USD 2,000,000."
+    }
+   ],
+   "territory_period": [
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Territory: worldwide excluding sanctioned countries."
+    },
+    {
+     "amounts": [],
+     "document": "policy.txt",
+     "text": "Policy period: 12 months."
+    }
+   ],
+   "waiting_periods": [
+    {
+     "amounts": [
+      "USD 10,000,000"
+     ],
+     "document": "policy.txt",
+     "text": "Business interruption is subject to a waiting period of 12 hours before cover attaches; dependent business interruption sub-limit USD 10,000,000."
+    }
+   ]
+  },
+  "counts": {
+   "conditions": 2,
+   "deductibles": 2,
+   "endorsements": 1,
+   "exclusions": 2,
+   "limits": 4,
+   "territory_period": 2,
+   "waiting_periods": 1
+  },
+  "documents": [
+   "policy.txt"
+  ],
+  "method": "regex clause categories over sentence-split PDF text"
+ },
+ "cmp": {
+  "aggregate_stop_loss": {
+   "aggregate_deductible": 28715584.03,
+   "aggregate_limit": 68052722.63,
+   "capital_charge": 657893.54,
+   "expected_recovery": 3336328.44,
+   "expected_retained_loss": 20495516.06,
+   "reinsurance_premium": 4504043.4,
+   "retained_var_99_5": 28719185.37,
+   "tcor": 25657453.0
+  },
+  "cheaper_structure": "aggregate_stop_loss",
+  "method": "same pricing basis for both; stop-loss attaches at p75 of gross annual loss, limit to p99.5",
+  "per_occurrence_xol": {
+   "capital_charge": 3393271.48,
+   "expected_recovery": 8841189.49,
+   "expected_retained_loss": 14990655.02,
+   "limit": 25000000,
+   "reinsurance_premium": 11935605.81,
+   "retained_var_99_5": 57406548.58,
+   "retention": 2000000,
+   "tcor": 30319532.32
+  },
+  "tcor_difference": 4662079.32
+ },
+ "conc": {
+  "concentration_level": "moderate",
+  "hhi_by_line": 0.324,
+  "hhi_by_risk_class": 0.329,
+  "method": "HHI (sum of squared shares); > 0.4 high, > 0.25 moderate",
+  "top5_claims": [
+   {
+    "claim_amount": 41000000.0,
+    "claim_id": "NEX-00111",
+    "line_of_business": "cyber_breach"
+   },
+   {
+    "claim_amount": 30200217.0,
+    "claim_id": "NEX-00109",
+    "line_of_business": "tech_eo"
+   },
+   {
+    "claim_amount": 28000000.0,
+    "claim_id": "NEX-00044",
+    "line_of_business": "cyber_breach"
+   },
+   {
+    "claim_amount": 11092242.0,
+    "claim_id": "NEX-00009",
+    "line_of_business": "cyber_breach"
+   },
+   {
+    "claim_amount": 10305840.0,
+    "claim_id": "NEX-00095",
+    "line_of_business": "tech_eo"
+   }
+  ],
+  "top5_claims_share_pct": 51.7,
+  "top_line": {
+   "line_of_business": "cyber_breach",
+   "share_pct": 45.5
+  }
+ },
+ "devp": {
+  "by_accident_year": [
+   {
+    "accident_year": 2018,
+    "claims": 15,
+    "paid": 15124719.0,
+    "reported": 16783964.0,
+    "reserve": 1663471.0,
+    "reserve_ratio": 0.099
+   },
+   {
+    "accident_year": 2019,
+    "claims": 11,
+    "paid": 13629075.0,
+    "reported": 14889433.0,
+    "reserve": 1327434.0,
+    "reserve_ratio": 0.089
+   },
+   {
+    "accident_year": 2020,
+    "claims": 17,
+    "paid": 9757255.0,
+    "reported": 10872093.0,
+    "reserve": 1114838.0,
+    "reserve_ratio": 0.103
+   },
+   {
+    "accident_year": 2021,
+    "claims": 28,
+    "paid": 49005180.0,
+    "reported": 67999537.0,
+    "reserve": 19017110.0,
+    "reserve_ratio": 0.28
+   },
+   {
+    "accident_year": 2022,
+    "claims": 16,
+    "paid": 4873490.0,
+    "reported": 5484200.0,
+    "reserve": 610710.0,
+    "reserve_ratio": 0.111
+   },
+   {
+    "accident_year": 2023,
+    "claims": 22,
+    "paid": 33401885.0,
+    "reported": 52013270.0,
+    "reserve": 18621883.0,
+    "reserve_ratio": 0.358
+   },
+   {
+    "accident_year": 2024,
+    "claims": 35,
+    "paid": 30480112.0,
+    "reported": 70198868.0,
+    "reserve": 39718756.0,
+    "reserve_ratio": 0.566
+   }
+  ],
+  "claims_by_dev_month": {
+   "12": 35,
+   "24": 22,
+   "36": 87
+  },
+  "method": "paid/reported by 12-month development bucket; reserve/reported by accident year",
+  "paid_to_reported_by_dev_month": {
+   "12": 0.434,
+   "24": 0.642,
+   "36": 0.796
+  }
+ },
+ "emerg": {
+  "latest_year": 2024,
+  "method": "last 2 years vs earlier years; >30% rise = red, >10% = amber",
+  "red_flags": [
+   "business_interruption",
+   "cyber_breach",
+   "d_and_o",
+   "tech_eo"
+  ],
+  "signals": [
+   {
+    "frequency_change_pct": 34.6,
+    "line_of_business": "business_interruption",
+    "recent_claims_per_year": 7.0,
+    "severity_change_pct": -32.5,
+    "signal": "red"
+   },
+   {
+    "frequency_change_pct": 83.8,
+    "line_of_business": "cyber_breach",
+    "recent_claims_per_year": 12.5,
+    "severity_change_pct": 42.3,
+    "signal": "red"
+   },
+   {
+    "frequency_change_pct": 66.7,
+    "line_of_business": "d_and_o",
+    "recent_claims_per_year": 4.0,
+    "severity_change_pct": 0.3,
+    "signal": "red"
+   },
+   {
+    "frequency_change_pct": 66.7,
+    "line_of_business": "tech_eo",
+    "recent_claims_per_year": 5.0,
+    "severity_change_pct": 209.8,
+    "signal": "red"
+   }
+  ],
+  "window_years": 2
+ },
+ "expo": {
+  "by_line": [
+   {
+    "claims": 40.0,
+    "exposure": 545341000.0,
+    "line_of_business": "business_interruption",
+    "loss": 23736711.0,
+    "share_of_loss_pct": 10.2
+   },
+   {
+    "claims": 59.0,
+    "exposure": 730965000.0,
+    "line_of_business": "cyber_breach",
+    "loss": 106075035.0,
+    "share_of_loss_pct": 45.5
+   },
+   {
+    "claims": 20.0,
+    "exposure": 254312000.0,
+    "line_of_business": "d_and_o",
+    "loss": 36277228.0,
+    "share_of_loss_pct": 15.6
+   },
+   {
+    "claims": 25.0,
+    "exposure": 363047000.0,
+    "line_of_business": "tech_eo",
+    "loss": 67173594.0,
+    "share_of_loss_pct": 28.8
+   }
+  ],
+  "by_year": [
+   {
+    "accident_year": 2018,
+    "claims": 15.0,
+    "exposure": 191636000.0,
+    "exposure_yoy_pct": null,
+    "loss": 16841655.0,
+    "loss_ratio_to_exposure_pct": 8.79
+   },
+   {
+    "accident_year": 2019,
+    "claims": 11.0,
+    "exposure": 114041000.0,
+    "exposure_yoy_pct": -40.5,
+    "loss": 14372184.0,
+    "loss_ratio_to_exposure_pct": 12.6
+   },
+   {
+    "accident_year": 2020,
+    "claims": 17.0,
+    "exposure": 227388000.0,
+    "exposure_yoy_pct": 99.4,
+    "loss": 10667512.0,
+    "loss_ratio_to_exposure_pct": 4.69
+   },
+   {
+    "accident_year": 2021,
+    "claims": 28.0,
+    "exposure": 419936000.0,
+    "exposure_yoy_pct": 84.7,
+    "loss": 65723341.0,
+    "loss_ratio_to_exposure_pct": 15.65
+   },
+   {
+    "accident_year": 2022,
+    "claims": 16.0,
+    "exposure": 219545000.0,
+    "exposure_yoy_pct": -47.7,
+    "loss": 5285754.0,
+    "loss_ratio_to_exposure_pct": 2.41
+   },
+   {
+    "accident_year": 2023,
+    "claims": 22.0,
+    "exposure": 244727000.0,
+    "exposure_yoy_pct": 11.5,
+    "loss": 52042870.0,
+    "loss_ratio_to_exposure_pct": 21.27
+   },
+   {
+    "accident_year": 2024,
+    "claims": 35.0,
+    "exposure": 476392000.0,
+    "exposure_yoy_pct": 94.7,
+    "loss": 68329252.0,
+    "loss_ratio_to_exposure_pct": 14.34
+   }
+  ],
+  "method": "sums by accident year and line; loss ratio to exposure"
+ },
+ "freq": {
+  "annual_trend_pct": 14.1,
+  "claims_per_year": {
+   "2018": 15,
+   "2019": 11,
+   "2020": 17,
+   "2021": 28,
+   "2022": 16,
+   "2023": 22,
+   "2024": 35
+  },
+  "dispersion_ratio": 3.417,
+  "distribution": "negative_binomial",
+  "method": "Poisson MLE (lambda = mean count/year); NB flagged when var/mean > 1.5",
+  "poisson_lambda": 20.571,
+  "variance": 70.286,
+  "years": 7
+ },
+ "ibnr": {
+  "assumptions": {
+   "reporting_pattern_cum_pct_by_age_months": {
+    "12": 0.4,
+    "24": 0.7,
+    "36": 0.88,
+    "48": 0.97,
+    "60": 1.0
+   }
+  },
+  "by_accident_year": [
+   {
+    "accident_year": 2018,
+    "age_months": 84,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 16783964.0,
+    "ultimate": 16783964.0
+   },
+   {
+    "accident_year": 2019,
+    "age_months": 72,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 14889433.0,
+    "ultimate": 14889433.0
+   },
+   {
+    "accident_year": 2020,
+    "age_months": 60,
+    "ibnr": 0.0,
+    "ldf": 1.0,
+    "pct_reported": 1.0,
+    "reported": 10872093.0,
+    "ultimate": 10872093.0
+   },
+   {
+    "accident_year": 2021,
+    "age_months": 48,
+    "ibnr": 2103078.46,
+    "ldf": 1.0309,
+    "pct_reported": 0.97,
+    "reported": 67999537.0,
+    "ultimate": 70102615.46
+   },
+   {
+    "accident_year": 2022,
+    "age_months": 36,
+    "ibnr": 747845.45,
+    "ldf": 1.1364,
+    "pct_reported": 0.88,
+    "reported": 5484200.0,
+    "ultimate": 6232045.45
+   },
+   {
+    "accident_year": 2023,
+    "age_months": 24,
+    "ibnr": 22291401.43,
+    "ldf": 1.4286,
+    "pct_reported": 0.7,
+    "reported": 52013270.0,
+    "ultimate": 74304671.43
+   },
+   {
+    "accident_year": 2024,
+    "age_months": 12,
+    "ibnr": 105298302.0,
+    "ldf": 2.5,
+    "pct_reported": 0.4,
+    "reported": 70198868.0,
+    "ultimate": 175497170.0
+   }
+  ],
+  "case_reserves": 82074202.0,
+  "ibnr": 130440627.34,
+  "method": "loss development factor (reported incurred x LDF), valuation at year end",
+  "paid_to_date": 156271716.0,
+  "portfolio_loss": 238241365.0,
+  "ultimate_loss": 368681992.34,
+  "valuation_year": 2024
+ },
+ "intel": {
+  "anomalous_amount_total": 145134661.0,
+  "anomalous_top5": [
+   "NEX-00111",
+   "NEX-00109",
+   "NEX-00044",
+   "NEX-00095",
+   "NEX-00130"
+  ],
+  "anomaly_count": 8,
+  "anomaly_rate_pct": 5.6,
+  "claim_count": 144,
+  "historical_mean_severity": 1619878.94,
+  "latest_year": 2024,
+  "latest_year_mean_severity": 1952264.34,
+  "predicted_mean_severity": 1825457.87,
+  "prior_years_mean_severity": 1681068.93,
+  "severity_by_year": {
+   "2018": 1122777.0,
+   "2019": 1306562.18,
+   "2020": 627500.71,
+   "2021": 2347262.18,
+   "2022": 330359.62,
+   "2023": 2365585.0,
+   "2024": 1952264.34
+  },
+  "severity_change_pct": 16.1
+ },
+ "large_loss": {
+  "early_large_claims": [
+   {
+    "accident_year": 2024,
+    "claim_id": "NEX-00111",
+    "development_month": 9,
+    "line_of_business": "cyber_breach",
+    "reported_amount": 43050000.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "NEX-00130",
+    "development_month": 9,
+    "line_of_business": "d_and_o",
+    "reported_amount": 6530329.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "NEX-00110",
+    "development_month": 4,
+    "line_of_business": "d_and_o",
+    "reported_amount": 3905986.0
+   },
+   {
+    "accident_year": 2024,
+    "claim_id": "NEX-00117",
+    "development_month": 4,
+    "line_of_business": "tech_eo",
+    "reported_amount": 2469991.0
+   }
+  ],
+  "early_large_claims_count": 4,
+  "method": "claims <= 12 dev months with reported >= p90; claims with reserve >= 80% of reported",
+  "mostly_unpaid_claims_count": 13,
+  "mostly_unpaid_total_reserve": 9303057.0,
+  "severity_p90": 1859682.6
+ },
+ "leak": {
+  "assumed_cpi_pct": 3.0,
+  "closed_claims": 95,
+  "late_reported_claims_over_90d": 0,
+  "leakage_rate_pct": 0.07,
+  "leakage_total": 104553.0,
+  "litigated_mean_severity": 1022209.6,
+  "litigation_rate_pct": 13.9,
+  "litigation_severity_multiple": 0.6,
+  "mean_report_lag_days": 23.3,
+  "method": "leakage = paid in excess of reported incurred (overpayment); RF outlier = paid > 2x RandomForest-predicted severity; social inflation = log-linear severity trend minus CPI",
+  "non_litigated_mean_severity": 1716277.23,
+  "overpaid_claim_count": 8,
+  "rf_outlier_paid_count": 21,
+  "severity_trend_pct_per_year": 8.2,
+  "social_inflation_pct_per_year": 5.2,
+  "top_overpaid_claims": [
+   {
+    "claim_id": "NEX-00019",
+    "line_of_business": "business_interruption",
+    "overpaid": 46895.0,
+    "paid_amount": 1010310.0,
+    "predicted_severity": 259252.06
+   },
+   {
+    "claim_id": "NEX-00053",
+    "line_of_business": "tech_eo",
+    "overpaid": 20736.0,
+    "paid_amount": 546948.0,
+    "predicted_severity": 3352989.47
+   },
+   {
+    "claim_id": "NEX-00016",
+    "line_of_business": "cyber_breach",
+    "overpaid": 16691.0,
+    "paid_amount": 1049213.0,
+    "predicted_severity": 290842.03
+   },
+   {
+    "claim_id": "NEX-00104",
+    "line_of_business": "cyber_breach",
+    "overpaid": 10498.0,
+    "paid_amount": 519876.0,
+    "predicted_severity": 242052.77
+   },
+   {
+    "claim_id": "NEX-00010",
+    "line_of_business": "cyber_breach",
+    "overpaid": 4226.0,
+    "paid_amount": 113988.0,
+    "predicted_severity": 922383.19
+   },
+   {
+    "claim_id": "NEX-00020",
+    "line_of_business": "tech_eo",
+    "overpaid": 2656.0,
+    "paid_amount": 256463.0,
+    "predicted_severity": 3354438.11
+   },
+   {
+    "claim_id": "NEX-00046",
+    "line_of_business": "cyber_breach",
+    "overpaid": 2017.0,
+    "paid_amount": 66978.0,
+    "predicted_severity": 1216355.8
+   },
+   {
+    "claim_id": "NEX-00025",
+    "line_of_business": "cyber_breach",
+    "overpaid": 834.0,
+    "paid_amount": 69827.0,
+    "predicted_severity": 241583.4
+   }
+  ]
+ },
+ "pricing": {
+  "expected_annual_loss": 23663678.9,
+  "expense_load": 0.25,
+  "frequency_per_year": 20.571,
+  "indicated_annual_premium": 31945966.52,
+  "mean_severity": 1150341.69,
+  "method": "pure premium = lambda x E[severity]; loaded for expenses and risk margin",
+  "risk_margin": 0.1
+ },
+ "qs": {
+  "cheaper_structure": "quota_share",
+  "excess_of_loss": {
+   "capital_charge": 3393271.48,
+   "expected_recovery": 8841189.49,
+   "expected_retained_loss": 14990655.02,
+   "limit": 25000000,
+   "reinsurance_premium": 11935605.81,
+   "retained_var_99_5": 57406548.58,
+   "retention": 2000000,
+   "tcor": 30319532.32
+  },
+  "method": "QS premium = gross premium proxy x cession x (1 - commission); same capital-charge basis as XoL",
+  "quota_share": {
+   "capital_charge": 4084441.88,
+   "ceding_commission": 0.25,
+   "cession_pct": 0.3,
+   "expected_recovery": 7149553.35,
+   "expected_retained_loss": 16682291.15,
+   "reinsurance_premium": 7238922.77,
+   "retained_var_99_5": 67737814.66,
+   "tcor": 28005655.8
+  },
+  "tail_protection_note": "XoL caps individual large losses; quota share shares every loss pro rata and leaves the tail proportionally retained.",
+  "tcor_difference": 2313876.52
+ },
+ "rec": {
+  "claims_exhausting_layer": 3,
+  "claims_in_layer": 14,
+  "expected_recovery": 126000636.0,
+  "gross_loss": 233262568.0,
+  "largest_gross_claim": 41000000.0,
+  "limit": 25000000.0,
+  "method": "per-occurrence excess of loss, 25,000,000 xs 2,000,000",
+  "net_loss": 107261932.0,
+  "retention": 2000000.0,
+  "uncovered_above_layer": 18200217.0
+ },
+ "rrc": {
+  "annual_cost_of_retained_risk": 18383926.5,
+  "capital_backing_retained_risk": 42415893.56,
+  "cost_of_capital_rate": 0.08,
+  "expected_recovery": 8841189.49,
+  "expected_retained_loss": 14990655.02,
+  "limit": 25000000,
+  "method": "expected retained loss + cost of capital on (VaR99.5 - mean) of retained distribution",
+  "retained_var_99_5": 57406548.58,
+  "retention": 2000000
+ },
+ "sev": {
+  "empirical_mean": 1619878.94,
+  "empirical_median": 398951.0,
+  "lognormal_mean": 1150341.69,
+  "lognormal_mu": 12.9054,
+  "lognormal_p99": 11720110.66,
+  "lognormal_sigma": 1.4493,
+  "max": 41000000.0,
+  "method": "lognormal MLE on log(claim_amount)",
+  "n": 144,
+  "p90": 1859682.6,
+  "p99": 29254123.69,
+  "tail": "heavy"
+ },
+ "shift": {
+  "by_line": [
+   {
+    "latest_mean_severity": 2781700.11,
+    "latest_year_claims": 18,
+    "line_of_business": "cyber_breach",
+    "prior_avg_claims_per_year": 6.8,
+    "prior_mean_severity": 1365961.78,
+    "severity_change_pct": 103.6
+   },
+   {
+    "latest_mean_severity": 2016335.57,
+    "latest_year_claims": 7,
+    "line_of_business": "d_and_o",
+    "prior_avg_claims_per_year": 2.2,
+    "prior_mean_severity": 1704836.85,
+    "severity_change_pct": 18.3
+   },
+   {
+    "latest_mean_severity": 161699.4,
+    "latest_year_claims": 5,
+    "line_of_business": "business_interruption",
+    "prior_avg_claims_per_year": 5.8,
+    "prior_mean_severity": 655091.83,
+    "severity_change_pct": -75.3
+   },
+   {
+    "latest_mean_severity": 667160.8,
+    "latest_year_claims": 5,
+    "line_of_business": "tech_eo",
+    "prior_avg_claims_per_year": 3.3,
+    "prior_mean_severity": 3191889.5,
+    "severity_change_pct": -79.1
+   }
+  ],
+  "latest_year": 2024,
+  "method": "latest accident year vs prior-year averages, per line"
+ },
+ "sim": {
+  "confidence_tier": "benchmark_thin_data",
+  "expected_recovery": 8841189.49,
+  "frequency_lambda": 20.571,
+  "gross": {
+   "max": 577383275.51,
+   "mean": 23831844.5,
+   "p50": 20423918.95,
+   "std": 16351921.64,
+   "tvar_99": 113645353.18,
+   "var_95": 49691044.19,
+   "var_99": 76523003.02,
+   "var_99_5": 96768306.66
+  },
+  "limit": 25000000,
+  "method": "Monte Carlo, Poisson frequency x lognormal severity, per-occurrence XoL applied per claim",
+  "net_of_reinsurance": {
+   "max": 543579541.65,
+   "mean": 14990655.02,
+   "p50": 13984424.32,
+   "std": 10042612.58,
+   "tvar_99": 75761936.92,
+   "var_95": 23275391.57,
+   "var_99": 39073160.97,
+   "var_99_5": 57406548.58
+  },
+  "paths": 20000,
+  "retention": 2000000,
+  "severity_lognormal": {
+   "mu": 12.9054,
+   "sigma": 1.4493
+  }
+ },
+ "sim_gross": {
+  "confidence_tier": "benchmark_thin_data",
+  "expected_recovery": 0.0,
+  "frequency_lambda": 20.571,
+  "gross": {
+   "max": 577383275.51,
+   "mean": 23831844.5,
+   "p50": 20423918.95,
+   "std": 16351921.64,
+   "tvar_99": 113645353.18,
+   "var_95": 49691044.19,
+   "var_99": 76523003.02,
+   "var_99_5": 96768306.66
+  },
+  "limit": null,
+  "method": "Monte Carlo, Poisson frequency x lognormal severity, per-occurrence XoL applied per claim",
+  "net_of_reinsurance": null,
+  "paths": 20000,
+  "retention": null,
+  "severity_lognormal": {
+   "mu": 12.9054,
+   "sigma": 1.4493
+  }
+ },
+ "solv": {
+  "basis": "net_of_reinsurance",
+  "case_reserves_carried": 82074202.0,
+  "confidence_tier": "benchmark_thin_data",
+  "expected_annual_loss": 14990655.02,
+  "liquidity_cover_of_var95": 2.15,
+  "method": "SCR = VaR99.5 - mean of simulated annual loss; ratio = own funds / SCR; warn < 120%, breach < 100%",
+  "own_funds": 50000000,
+  "scr": 42415893.56,
+  "scr_ratio_pct": 117.9,
+  "status": "warning",
+  "surplus_over_scr": 7584106.44,
+  "var_99_5": 57406548.58
+ },
+ "stress": {
+  "base_expected_annual_loss": 23663678.9,
+  "method": "deterministic scaling of fitted lambda and lognormal mean",
+  "scenarios": [
+   {
+    "change_vs_base_pct": 0.0,
+    "expected_annual_loss": 23663678.9,
+    "frequency_multiplier": 1.0,
+    "scenario": "base",
+    "severity_multiplier": 1.0
+   },
+   {
+    "change_vs_base_pct": 25.0,
+    "expected_annual_loss": 29579598.63,
+    "frequency_multiplier": 1.25,
+    "scenario": "frequency_+25%",
+    "severity_multiplier": 1.0
+   },
+   {
+    "change_vs_base_pct": 30.0,
+    "expected_annual_loss": 30762782.58,
+    "frequency_multiplier": 1.0,
+    "scenario": "severity_+30%",
+    "severity_multiplier": 1.3
+   },
+   {
+    "change_vs_base_pct": 62.5,
+    "expected_annual_loss": 38453478.22,
+    "frequency_multiplier": 1.25,
+    "scenario": "combined_+25%_+30%",
+    "severity_multiplier": 1.3
+   },
+   {
+    "change_vs_base_pct": 200.0,
+    "expected_annual_loss": 70991036.71,
+    "frequency_multiplier": 2.0,
+    "scenario": "catastrophe_freq_x2_sev_x1.5",
+    "severity_multiplier": 1.5
+   }
+  ]
+ },
+ "sweep": {
+  "cost_of_capital": 0.08,
+  "limit": 25000000,
+  "loading": 0.35,
+  "method": "TCoR = premium (expected ceded x (1+loading)) + expected retained loss + CoC x (VaR99.5 - mean)",
+  "optimal_retention": 9298000.0,
+  "optimal_tcor": 28319078.93,
+  "sweep": [
+   {
+    "capital_charge": 3237303.74,
+    "expected_recovery": 18809509.8,
+    "expected_retained_loss": 5022334.71,
+    "limit": 25000000,
+    "reinsurance_premium": 25392838.23,
+    "retained_var_99_5": 45488631.49,
+    "retention": 250000,
+    "tcor": 33652476.68
+   },
+   {
+    "capital_charge": 3255924.56,
+    "expected_recovery": 16447924.58,
+    "expected_retained_loss": 7383919.92,
+    "limit": 25000000,
+    "reinsurance_premium": 22204698.18,
+    "retained_var_99_5": 48082976.88,
+    "retention": 465000.0,
+    "tcor": 32844542.66
+   },
+   {
+    "capital_charge": 3262678.63,
+    "expected_recovery": 16125666.65,
+    "expected_retained_loss": 7706177.85,
+    "limit": 25000000,
+    "reinsurance_premium": 21769649.98,
+    "retained_var_99_5": 48489660.78,
+    "retention": 500000,
+    "tcor": 32738506.46
+   },
+   {
+    "capital_charge": 3324027.88,
+    "expected_recovery": 13044446.43,
+    "expected_retained_loss": 10787398.07,
+    "limit": 25000000,
+    "reinsurance_premium": 17610002.68,
+    "retained_var_99_5": 52337746.62,
+    "retention": 930000.0,
+    "tcor": 31721428.63
+   },
+   {
+    "capital_charge": 3322927.24,
+    "expected_recovery": 12654227.65,
+    "expected_retained_loss": 11177616.85,
+    "limit": 25000000,
+    "reinsurance_premium": 17083207.33,
+    "retained_var_99_5": 52714207.32,
+    "retention": 1000000,
+    "tcor": 31583751.42
+   },
+   {
+    "capital_charge": 3391954.13,
+    "expected_recovery": 9236810.64,
+    "expected_retained_loss": 14595033.87,
+    "limit": 25000000,
+    "reinsurance_premium": 12469694.36,
+    "retained_var_99_5": 56994460.51,
+    "retention": 1860000.0,
+    "tcor": 30456682.37
+   },
+   {
+    "capital_charge": 3393271.48,
+    "expected_recovery": 8841189.49,
+    "expected_retained_loss": 14990655.02,
+    "limit": 25000000,
+    "reinsurance_premium": 11935605.81,
+    "retained_var_99_5": 57406548.58,
+    "retention": 2000000,
+    "tcor": 30319532.32
+   },
+   {
+    "capital_charge": 3420302.32,
+    "expected_recovery": 7082320.48,
+    "expected_retained_loss": 16749524.03,
+    "limit": 25000000,
+    "reinsurance_premium": 9561132.65,
+    "retained_var_99_5": 59503303.06,
+    "retention": 2790000.0,
+    "tcor": 29730959.0
+   },
+   {
+    "capital_charge": 3447026.83,
+    "expected_recovery": 5674246.4,
+    "expected_retained_loss": 18157598.11,
+    "limit": 25000000,
+    "reinsurance_premium": 7660232.64,
+    "retained_var_99_5": 61245433.53,
+    "retention": 3719000.0,
+    "tcor": 29264857.58
+   },
+   {
+    "capital_charge": 3523718.27,
+    "expected_recovery": 3948836.79,
+    "expected_retained_loss": 19883007.71,
+    "limit": 25000000,
+    "reinsurance_premium": 5330929.67,
+    "retained_var_99_5": 63929486.03,
+    "retention": 5579000.0,
+    "tcor": 28737655.64
+   },
+   {
+    "capital_charge": 3688844.27,
+    "expected_recovery": 2281114.72,
+    "expected_retained_loss": 21550729.79,
+    "limit": 25000000,
+    "reinsurance_premium": 3079504.87,
+    "retained_var_99_5": 67661283.19,
+    "retention": 9298000.0,
+    "tcor": 28319078.93
+   }
+  ]
+ },
+ "tri": {
+  "age_to_age_factors": {
+   "12-24": 1.75,
+   "24-36": 1.2571,
+   "36-48": 1.1023,
+   "48-60": 1.0309,
+   "60-72": 1.0,
+   "72-84": 1.0
+  },
+  "bucket_months": 12,
+  "buckets": [
+   12,
+   24,
+   36,
+   48,
+   60,
+   72,
+   84
+  ],
+  "by_accident_year": [
+   {
+    "accident_year": 2018,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 16783964.0,
+    "ibnr": 0.0,
+    "latest_bucket": 84,
+    "reported_to_date": 16783964.0
+   },
+   {
+    "accident_year": 2019,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 14889433.0,
+    "ibnr": 0.0,
+    "latest_bucket": 72,
+    "reported_to_date": 14889433.0
+   },
+   {
+    "accident_year": 2020,
+    "cdf_to_ultimate": 1.0,
+    "chain_ladder_ultimate": 10872093.0,
+    "ibnr": 0.0,
+    "latest_bucket": 60,
+    "reported_to_date": 10872093.0
+   },
+   {
+    "accident_year": 2021,
+    "cdf_to_ultimate": 1.0309,
+    "chain_ladder_ultimate": 70100722.69,
+    "ibnr": 2101185.69,
+    "latest_bucket": 48,
+    "reported_to_date": 67999537.0
+   },
+   {
+    "accident_year": 2022,
+    "cdf_to_ultimate": 1.1364,
+    "chain_ladder_ultimate": 6232244.88,
+    "ibnr": 748044.88,
+    "latest_bucket": 36,
+    "reported_to_date": 5484200.0
+   },
+   {
+    "accident_year": 2023,
+    "cdf_to_ultimate": 1.4285,
+    "chain_ladder_ultimate": 74300956.2,
+    "ibnr": 22287686.2,
+    "latest_bucket": 24,
+    "reported_to_date": 52013270.0
+   },
+   {
+    "accident_year": 2024,
+    "cdf_to_ultimate": 2.4999,
+    "chain_ladder_ultimate": 175490150.11,
+    "ibnr": 105291282.11,
+    "latest_bucket": 12,
+    "reported_to_date": 70198868.0
+   }
+  ],
+  "cdf_to_ultimate": {
+   "12": 2.4999,
+   "24": 1.4285,
+   "36": 1.1364,
+   "48": 1.0309,
+   "60": 1.0,
+   "72": 1.0,
+   "84": 1.0
+  },
+  "method": "triangle reconstructed from claim snapshots using report lag and the reporting pattern assumption; volume-weighted age-to-age; chain-ladder ultimate",
+  "total_chain_ladder_ibnr": 130428198.88,
+  "triangle": {
+   "2018": {
+    "12": 6713585.6,
+    "24": 11748774.8,
+    "36": 14769888.32,
+    "48": 16280445.08,
+    "60": 16783964.0,
+    "72": 16783964.0,
+    "84": 16783964.0
+   },
+   "2019": {
+    "12": 5955773.2,
+    "24": 10422603.1,
+    "36": 13102701.04,
+    "48": 14442750.01,
+    "60": 14889433.0,
+    "72": 14889433.0,
+    "84": null
+   },
+   "2020": {
+    "12": 4348837.2,
+    "24": 7610465.1,
+    "36": 9567441.84,
+    "48": 10545930.21,
+    "60": 10872093.0,
+    "72": null,
+    "84": null
+   },
+   "2021": {
+    "12": 28041046.19,
+    "24": 49071830.82,
+    "36": 61690301.61,
+    "48": 67999537.0,
+    "60": null,
+    "72": null,
+    "84": null
+   },
+   "2022": {
+    "12": 2492818.18,
+    "24": 4362431.82,
+    "36": 5484200.0,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null
+   },
+   "2023": {
+    "12": 29721868.57,
+    "24": 52013270.0,
+    "36": null,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null
+   },
+   "2024": {
+    "12": 70198868.0,
+    "24": null,
+    "36": null,
+    "48": null,
+    "60": null,
+    "72": null,
+    "84": null
+   }
+  }
+ }
+}
