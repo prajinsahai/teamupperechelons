@@ -1,0 +1,8 @@
+CYBER, TECHNOLOGY ERRORS & OMISSIONS AND CONTINGENT BUSINESS INTERRUPTION POLICY — NEXUS CLOUD SEC.
+Limit of Liability: USD 25,000,000 each claim and in the aggregate. Sub-limit: USD 5,000,000 for regulatory fines and penalties where insurable by law.
+Business interruption is subject to a waiting period of 12 hours before cover attaches; dependent business interruption sub-limit USD 10,000,000.
+Deductible: USD 500,000 each claim. Retention for systemic events affecting more than 50 tenants: USD 2,000,000.
+Exclusions: This policy does not cover loss arising from war or state-sponsored cyber operations attributed by a competent authority; infrastructure failure of a public utility; unencrypted portable devices; prior known circumstances.
+Not covered: betterment of systems; contractual penalties beyond those the insured would have owed absent contract; loss of intellectual property value.
+Conditions: Notification within 72 hours of discovery of a security event is a condition precedent. Multi-factor authentication must be maintained on all privileged accounts (warranty).
+Territory: worldwide excluding sanctioned countries. Policy period: 12 months. Endorsement 7: Extension for cryptojacking and ransomware negotiation costs, sub-limit USD 2,000,000.

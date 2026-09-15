@@ -27,6 +27,8 @@ from src.policy import wording
 
 COMMON_RULES = (
     "\n\nRules you must follow:\n"
+    "0. Reason first inside a <scratchpad>...</scratchpad> block (which tools to call, what the numbers say, "
+    "what conflicts). The scratchpad is stripped before display; the answer comes after it.\n"
     "1. Never calculate, estimate, or invent a number. Every figure you state must be copied "
     "verbatim from a tool result. If a figure is not in a tool result, call a tool or say you cannot say.\n"
     "2. Call the tools you need first (several if useful), then answer.\n"
@@ -106,7 +108,12 @@ def _actuary_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
         """1-in-200 capital adequacy on the simulated gross annual loss (uses capital_held from the sidebar)."""
         return _j(cap.public(cap.capital_adequacy(df, p["capital_held"])))
 
-    return [_profile_tool(b), frequency_model, severity_model, ibnr_reserve, pricing, stress_scenarios, capital_test]
+    @tool
+    def loss_development_triangle() -> str:
+        """Cumulative incurred triangle (accident year x 12-month development), age-to-age factors, chain-ladder ultimates and IBNR per year."""
+        return _j(dev.loss_triangle(df))
+
+    return [_profile_tool(b), frequency_model, severity_model, ibnr_reserve, loss_development_triangle, pricing, stress_scenarios, capital_test]
 
 
 def _actuary_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
@@ -153,7 +160,12 @@ def _claims_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
         """Frequency and severity change per line of business, latest year vs prior."""
         return _j(dev.claim_pattern_shift(df))
 
-    return [_profile_tool(b), claims_intelligence, anomalous_claims, development_pattern, adverse_development, large_loss_indicators, pattern_shift_by_line]
+    @tool
+    def leakage_and_litigation() -> str:
+        """Claims leakage (paid above reported), RF-outlier payments, litigation rate and severity multiple, social inflation vs CPI, reporting lag."""
+        return _j(dev.claims_leakage(df))
+
+    return [_profile_tool(b), claims_intelligence, anomalous_claims, development_pattern, adverse_development, large_loss_indicators, pattern_shift_by_line, leakage_and_litigation]
 
 
 def _claims_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
@@ -194,7 +206,12 @@ def _reins_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
         """TCoR at the current retention with the limit halved and doubled."""
         return _j({"half_limit": tc.tcor_for_layer(df, r, l / 2), "current": tc.tcor_for_layer(df, r, l), "double_limit": tc.tcor_for_layer(df, r, l * 2)})
 
-    return [_profile_tool(b), current_layer_recovery, simulated_net_position, retention_optimisation, alternative_structures, attachment_sensitivity]
+    @tool
+    def quota_share_vs_excess_of_loss() -> str:
+        """Quota share (30% cession, 25% commission) versus the per-occurrence XoL layer on the same TCoR basis."""
+        return _j(tc.quota_share_vs_xol(df, r, l))
+
+    return [_profile_tool(b), current_layer_recovery, simulated_net_position, retention_optimisation, alternative_structures, attachment_sensitivity, quota_share_vs_excess_of_loss]
 
 
 def _reins_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
@@ -235,14 +252,20 @@ def _capital_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
         """Expected annual loss under frequency/severity stress scenarios."""
         return _j(stress_test(df))
 
-    return [_profile_tool(b), capital_adequacy_net, capital_adequacy_gross, retained_risk_economics, loss_distribution, stress_scenarios]
+    @tool
+    def solvency_ratio() -> str:
+        """Solvency II-style SCR (= VaR99.5 - expected loss), own funds / SCR ratio with warning < 120% and breach < 100%, liquidity cover."""
+        return _j(cap.solvency_position(df, c, r, l))
+
+    return [_profile_tool(b), solvency_ratio, capital_adequacy_net, capital_adequacy_gross, retained_risk_economics, loss_distribution, stress_scenarios]
 
 
 def _capital_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
     df = _need_claims(b)
     ca = cap.capital_adequacy(df, p["capital_held"], p["retention"], p["limit"])
+    sp = cap.solvency_position(df, p["capital_held"], p["retention"], p["limit"])
     return {"computed_shortfall_probability_pct": ca["shortfall_probability_pct"], "computed_capital_required_99_5": ca["capital_required_99_5"],
-            "computed_expected_loss": ca["expected_annual_loss"], "capital_held": p["capital_held"], "confidence_tier": ca["confidence_tier"]}
+            "computed_scr_ratio_pct": sp["scr_ratio_pct"], "computed_expected_loss": ca["expected_annual_loss"], "capital_held": p["capital_held"], "confidence_tier": ca["confidence_tier"]}
 
 
 # ---------------------------------------------------------------- 5. AI Risk Manager
@@ -274,7 +297,12 @@ def _risk_tools(b: DataBundle, p: dict[str, Any]) -> list[BaseTool]:
         """The most anomalous claims (Isolation Forest)."""
         return anomaly_table(df, top_n).to_json(orient="records")
 
-    return [_profile_tool(b), exposure_movement, concentration, emerging_signals, stress_scenarios, anomalous_claims]
+    @tool
+    def monte_carlo_var() -> str:
+        """Simulated annual aggregate loss (mean, VaR95/99/99.5, TVaR99) gross and net of the current layer."""
+        return _j(cap.public(cap.simulate_aggregate(df, p["retention"], p["limit"])))
+
+    return [_profile_tool(b), exposure_movement, concentration, emerging_signals, monte_carlo_var, stress_scenarios, anomalous_claims]
 
 
 def _risk_meta(b: DataBundle, p: dict[str, Any]) -> dict[str, Any]:
@@ -324,8 +352,10 @@ TRACKS: dict[str, Track] = {
     "actuary": Track(
         "actuary", "AI Actuary",
         "Loss forecasting, frequency and severity, reserving, IBNR, loss development, pricing, capital adequacy, and stress tests.",
-        "You are the AI Actuary for a corporate insurance programme. You forecast losses, fit frequency and severity, "
-        "assess reserves and IBNR, indicate pricing, and run stress tests." + COMMON_RULES,
+        "You are the Lead Reserving Actuary. Your tone is highly mathematical, objective, and conservative. "
+        "Prioritise IBNR: use the chain-ladder triangle for mature data and the loss-development-factor (Bornhuetter-Ferguson "
+        "style pattern) reserve for volatile or thin data, and say which you relied on and why. Fit frequency and severity, "
+        "indicate pricing, run stress tests, and check 1-in-200 capital." + COMMON_RULES,
         "Are our reserves adequate, what is the expected annual loss, and what would we charge for this risk?",
         [
             "Are our reserves adequate, what is the expected annual loss, and what would we charge for this risk?",
@@ -339,8 +369,9 @@ TRACKS: dict[str, Track] = {
     "claims": Track(
         "claims", "AI Claims Analyst",
         "Finds changing claim patterns, adverse development, drivers, and early indicators of large-loss risk.",
-        "You are the AI Claims Analyst. You find changing claim patterns, adverse development, their drivers, "
-        "and early indicators of large-loss risk in the claims book." + COMMON_RULES,
+        "You are the Senior Claims Analyst. Analyse claim frequency, severity trends and litigation rates to identify "
+        "claims leakage, adjust for social inflation, and surface adverse development and early large-loss indicators, "
+        "naming the lines and claims responsible." + COMMON_RULES,
         "What is changing in our claims experience and where is large-loss risk emerging?",
         [
             "What is changing in our claims experience and where is large-loss risk emerging?",
@@ -354,8 +385,9 @@ TRACKS: dict[str, Track] = {
     "reinsurance": Track(
         "reinsurance", "AI Reinsurance Manager",
         "Models retentions, attachment points, limits, catastrophe exposure, transfer costs, and alternative program structures.",
-        "You are the AI Reinsurance Manager. You model retentions, attachment points, limits, transfer cost and "
-        "alternative programme structures, and recommend the structure that minimises Total Cost of Risk." + COMMON_RULES,
+        "You are the Head of Reinsurance. Analyse the financial impact of transferring risk to the secondary market "
+        "(quota share vs excess of loss vs aggregate stop-loss), calculate attachment points and exhaustion, and recommend "
+        "the structure that minimises Total Cost of Risk while protecting the tail." + COMMON_RULES,
         "Is our current retention and limit right, and would a different structure be cheaper?",
         [
             "Is our current retention and limit right, and would a different structure be cheaper?",
@@ -369,8 +401,9 @@ TRACKS: dict[str, Track] = {
     "capital": Track(
         "capital", "AI Capital Manager",
         "Evaluates capital sufficiency, shortfall probability, and the financial effect of retained risk.",
-        "You are the AI Capital Manager. You evaluate capital sufficiency at a 1-in-200 standard, shortfall "
-        "probability, and the financial effect of retained risk, gross and net of reinsurance." + COMMON_RULES,
+        "You are the Chief Capital Manager. Focus strictly on the balance sheet, liquidity and regulatory solvency "
+        "(Solvency II logic: SCR, own funds, SCR ratio). Issue an explicit WARNING if the SCR ratio is below 120% and a "
+        "BREACH notice below 100%. Quantify shortfall probability and the cost of retained risk." + COMMON_RULES,
         "Is our capital sufficient for the retained risk, and what is retained risk costing us?",
         [
             "Is our capital sufficient for the retained risk, and what is retained risk costing us?",
@@ -384,8 +417,9 @@ TRACKS: dict[str, Track] = {
     "risk": Track(
         "risk", "AI Risk Manager",
         "Continuously monitors risk changes, exposure movement, and emerging threat signals across the enterprise.",
-        "You are the AI Risk Manager. You monitor exposure movement, concentration and emerging threat signals "
-        "across lines of business and flag what needs attention now." + COMMON_RULES,
+        "You are the Enterprise Risk Manager. Use the Monte Carlo / VaR outputs to map aggregate exposure, monitor "
+        "exposure movement and concentration, stress the baseline against black-swan scenarios, and flag emerging "
+        "threats by line with a red/amber/green view." + COMMON_RULES,
         "Where is exposure moving, where are we concentrated, and which lines show emerging risk?",
         [
             "Where is exposure moving, where are we concentrated, and which lines show emerging risk?",
@@ -399,8 +433,9 @@ TRACKS: dict[str, Track] = {
     "policy": Track(
         "policy", "AI Policy Analyst",
         "Reads policies, contracts, endorsements, exclusions, deductibles, and coverage requirements to surface gaps.",
-        "You are the AI Policy Analyst. You read policy wordings, endorsements, exclusions, deductibles and limits, "
-        "and surface coverage gaps against the modeled exposure." + COMMON_RULES,
+        "You are the Lead Policy Analyst. Analyse coverage triggers, exclusions, sub-limits, deductibles, waiting periods, "
+        "warranties and notification conditions to determine how likely a loss is to actually be paid, and surface coverage "
+        "gaps against the modelled exposure." + COMMON_RULES,
         "What does this policy exclude or limit, and where are the coverage gaps against our exposure?",
         [
             "What does this policy exclude or limit, and where are the coverage gaps against our exposure?",

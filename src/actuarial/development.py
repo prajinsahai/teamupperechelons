@@ -103,3 +103,101 @@ def claim_pattern_shift(df: pd.DataFrame) -> dict[str, Any]:
         })
     rows.sort(key=lambda r: -(r["severity_change_pct"] or 0))
     return {"latest_year": latest, "by_line": rows, "method": "latest accident year vs prior-year averages, per line"}
+
+
+def loss_triangle(df: pd.DataFrame, bucket_months: int = 12) -> dict[str, Any]:
+    """Incurred loss development triangle (accident year x development bucket, cumulative),
+    volume-weighted age-to-age factors, and a chain-ladder ultimate per accident year.
+
+    Claims data is a snapshot (one row per claim as of today), so the history is
+    reconstructed: a claim enters the triangle once reported (report_lag_days) and its
+    incurred grows along the reporting pattern from src/actuarial/ibnr.py up to its
+    current value. That is a modelling assumption and is stated in `method`.
+    """
+    from src.actuarial.ibnr import pct_reported
+
+    d = df.copy()
+    latest = int(d["accident_year"].max())
+    years = sorted(int(y) for y in d["accident_year"].unique())
+    max_age = (latest - years[0] + 1) * 12
+    buckets = list(range(bucket_months, min(max_age, 120) + 1, bucket_months))
+    lag_m = (d["report_lag_days"] / 30.0) if "report_lag_days" in d else pd.Series(0.0, index=d.index)
+    tri = pd.DataFrame(index=years, columns=buckets, dtype=float)
+    for y in years:
+        g = d[d["accident_year"] == y]
+        age = (latest - y + 1) * 12
+        cur = pct_reported(age)
+        for bkt in buckets:
+            if bkt > age:
+                tri.loc[y, bkt] = np.nan
+            else:
+                entered = lag_m.loc[g.index] <= bkt
+                tri.loc[y, bkt] = float((g.loc[entered, "reported_amount"] * (pct_reported(bkt) / cur)).sum())
+    factors: dict[str, float] = {}
+    for a, b2 in zip(buckets[:-1], buckets[1:]):
+        both = tri[[a, b2]].dropna()
+        both = both[both[a] > 0]
+        factors[f"{a}-{b2}"] = round(float(both[b2].sum() / both[a].sum()), 4) if len(both) else 1.0
+    cdf: dict[int, float] = {buckets[-1]: 1.0}
+    acc = 1.0
+    for a, b2 in reversed(list(zip(buckets[:-1], buckets[1:]))):
+        acc *= factors[f"{a}-{b2}"]
+        cdf[a] = round(acc, 4)
+    ultimates = []
+    for y in years:
+        row = tri.loc[y].dropna()
+        if row.empty:
+            continue
+        last_b = int(row.index[-1]); latest_val = float(row.iloc[-1]); ult = latest_val * cdf.get(last_b, 1.0)
+        ultimates.append({"accident_year": y, "latest_bucket": last_b, "reported_to_date": round(latest_val, 2),
+                          "cdf_to_ultimate": cdf.get(last_b, 1.0), "chain_ladder_ultimate": round(ult, 2), "ibnr": round(ult - latest_val, 2)})
+    return {
+        "bucket_months": bucket_months,
+        "buckets": buckets,
+        "triangle": {y: {int(k): (None if pd.isna(v) else round(float(v), 2)) for k, v in tri.loc[y].items()} for y in years},
+        "age_to_age_factors": factors,
+        "cdf_to_ultimate": {int(k): v for k, v in cdf.items()},
+        "by_accident_year": ultimates,
+        "total_chain_ladder_ibnr": round(float(sum(u["ibnr"] for u in ultimates)), 2),
+        "method": "triangle reconstructed from claim snapshots using report lag and the reporting pattern assumption; volume-weighted age-to-age; chain-ladder ultimate",
+    }
+
+
+def claims_leakage(df: pd.DataFrame, cpi: float = 0.03) -> dict[str, Any]:
+    """Leakage (paid above model-predicted severity on closed claims), litigation rate and
+    severity multiple, social inflation (severity trend above an assumed CPI), reporting lag."""
+    from src.ml.predict import predict_severity
+
+    d = df.copy()
+    d["predicted_severity"] = predict_severity(d)
+    closed = d[d["status"] == "closed"] if "status" in d else d
+    over = (d["paid_amount"] - d["reported_amount"]).clip(lower=0)  # paid more than was ever reported
+    leak_total = float(over.sum())
+    paid_total = float(d["paid_amount"].sum())
+    top = d.assign(overpaid=over).nlargest(8, "overpaid")
+    rf_flag = d["paid_amount"] > 2.0 * d["predicted_severity"]
+    lit = d["litigated"].astype(bool) if "litigated" in d else pd.Series(False, index=d.index)
+    lit_sev = float(d.loc[lit, "claim_amount"].mean()) if lit.any() else None
+    nonlit_sev = float(d.loc[~lit, "claim_amount"].mean()) if (~lit).any() else None
+    by_year = d.groupby("accident_year")["claim_amount"].mean().sort_index()
+    sev_trend = float(np.exp(np.polyfit(np.arange(len(by_year)), np.log(by_year.to_numpy()), 1)[0]) - 1) if len(by_year) >= 3 else 0.0
+    lag = d["report_lag_days"] if "report_lag_days" in d else None
+    return {
+        "closed_claims": int(len(closed)),
+        "leakage_total": round(leak_total, 2),
+        "leakage_rate_pct": round(leak_total / paid_total * 100, 2) if paid_total else 0.0,
+        "overpaid_claim_count": int((over > 0).sum()),
+        "rf_outlier_paid_count": int(rf_flag.sum()),
+        "top_overpaid_claims": [{"claim_id": str(r["claim_id"]), "line_of_business": str(r["line_of_business"]), "paid_amount": round(float(r["paid_amount"]), 2),
+                                 "predicted_severity": round(float(r["predicted_severity"]), 2), "overpaid": round(float(r["overpaid"]), 2)} for _, r in top.iterrows()],
+        "litigation_rate_pct": round(float(lit.mean() * 100), 1),
+        "litigated_mean_severity": round(lit_sev, 2) if lit_sev else None,
+        "non_litigated_mean_severity": round(nonlit_sev, 2) if nonlit_sev else None,
+        "litigation_severity_multiple": round(lit_sev / nonlit_sev, 2) if lit_sev and nonlit_sev else None,
+        "severity_trend_pct_per_year": round(sev_trend * 100, 1),
+        "assumed_cpi_pct": cpi * 100,
+        "social_inflation_pct_per_year": round((sev_trend - cpi) * 100, 1),
+        "mean_report_lag_days": round(float(lag.mean()), 1) if lag is not None else None,
+        "late_reported_claims_over_90d": int((lag > 90).sum()) if lag is not None else None,
+        "method": "leakage = paid in excess of reported incurred (overpayment); RF outlier = paid > 2x RandomForest-predicted severity; social inflation = log-linear severity trend minus CPI",
+    }

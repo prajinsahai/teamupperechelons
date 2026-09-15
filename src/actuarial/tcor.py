@@ -80,3 +80,35 @@ def compare_structures(df: pd.DataFrame, retention: float, limit: float, agg_ded
         "tcor_difference": round(abs(stop_loss["tcor"] - xol["tcor"]), 2),
         "method": "same pricing basis for both; stop-loss attaches at p75 of gross annual loss, limit to p99.5",
     }
+
+
+def quota_share_vs_xol(df: pd.DataFrame, retention: float, limit: float, cession_pct: float = 0.30, commission: float = 0.25) -> dict[str, Any]:
+    """Quota share (cede a fixed % of every loss, earn ceding commission) versus the
+    per-occurrence excess-of-loss layer, on the same TCoR basis."""
+    xol = tcor_for_layer(df, retention, limit)
+    sim = simulate_aggregate(df)
+    gross = sim["_gross_paths"]
+    ceded = gross * cession_pct
+    net = gross - ceded
+    gross_premium_proxy = float(gross.mean()) * (1 + DEFAULT_LOADING)
+    qs_premium = gross_premium_proxy * cession_pct * (1 - commission)
+    v995 = float(np.percentile(net, 99.5))
+    charge = (v995 - float(net.mean())) * DEFAULT_COC
+    qs = {
+        "cession_pct": cession_pct,
+        "ceding_commission": commission,
+        "reinsurance_premium": round(qs_premium, 2),
+        "expected_retained_loss": round(float(net.mean()), 2),
+        "retained_var_99_5": round(v995, 2),
+        "capital_charge": round(charge, 2),
+        "tcor": round(qs_premium + float(net.mean()) + charge, 2),
+        "expected_recovery": round(float(ceded.mean()), 2),
+    }
+    return {
+        "excess_of_loss": xol,
+        "quota_share": qs,
+        "cheaper_structure": "quota_share" if qs["tcor"] < xol["tcor"] else "excess_of_loss",
+        "tcor_difference": round(abs(qs["tcor"] - xol["tcor"]), 2),
+        "tail_protection_note": "XoL caps individual large losses; quota share shares every loss pro rata and leaves the tail proportionally retained.",
+        "method": "QS premium = gross premium proxy x cession x (1 - commission); same capital-charge basis as XoL",
+    }

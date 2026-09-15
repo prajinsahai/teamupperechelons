@@ -1,0 +1,61 @@
+{
+  "slug": "terrafirma",
+  "name": "TerraFirma Civil",
+  "tagline": "Volatile / project-based \u2014 a civil contractor running 30-40 live sites.",
+  "focus": "Weather delays, surety exposure, stress testing of lumpy project risk.",
+  "lines": {
+    "builders_risk": 0.3,
+    "weather_delay": 0.25,
+    "contractor_liability": 0.2,
+    "equipment": 0.15,
+    "surety": 0.1
+  },
+  "years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "claims_per_year": 70,
+  "year_multipliers": {
+    "2018": 0.8,
+    "2019": 1.0,
+    "2020": 0.5,
+    "2021": 0.9,
+    "2022": 1.9,
+    "2023": 0.8,
+    "2024": 1.3
+  },
+  "sev_median": 60000,
+  "sev_sigma": 1.05,
+  "tail_months": 48,
+  "litigation_rate": 0.1,
+  "exposure_median": 2500000,
+  "limits": [
+    2000000.0,
+    5000000.0,
+    10000000.0
+  ],
+  "deductibles": [
+    25000,
+    50000,
+    100000
+  ],
+  "programme": {
+    "retention": 500000,
+    "limit": 5000000,
+    "capital_held": 5500000
+  },
+  "quirks": {
+    "weather_years": [
+      2022,
+      2024
+    ]
+  },
+  "seed": 7,
+  "claim_count": 525,
+  "total_claim_amount": 85535969.0
+}

@@ -28,6 +28,20 @@ Tool-calling loop is a plain manual loop: `llm.bind_tools(tools)` → invoke →
 response has `tool_calls`, run the matching Python function, append a `ToolMessage`,
 repeat until no tool calls. ~20 lines. No agent framework.
 
+## 1a. bizmax Core — auto mode (`src/core/`)
+
+`router.py` (LLM JSON routing per the blueprint, Actuary locked in, keyword fallback) →
+`orchestrator.py` (selected tracks run **in parallel** threads; contextvars copied so the PRISM
+session and computed_* metadata follow) → `synthesizer.py` (executive summary as JSON after a
+`<scratchpad>`; scratchpad stripped; truncated JSON recovered). Charts are NEVER produced by the
+synthesizer — `src/charts/figures.py` renders from engine output only. The MAGI-style panel is
+`src/ui/magi.py` (nodes strobe cyan↔green while running, lock green when done).
+Manual mode = one track at a time (the tabs). CLI: `python -m src.core.run <business> "<question>"`.
+
+Sample businesses (`src/data/samples.py` → `data/samples/<slug>/`): velocity (high freq/low sev,
+fraud), nexus (cyber cat, low freq/high sev), aegis (long-tail healthcare), terrafirma (volatile
+projects). Each has claims.csv + policy.txt + profile.json with programme defaults.
+
 ## 1b. The six tracks (`src/tracks/registry.py`)
 
 AI Actuary · AI Claims Analyst · AI Reinsurance Manager · AI Capital Manager · AI Risk Manager ·
@@ -186,7 +200,7 @@ tests/
 This project sends traces to PRISM. Env vars: `PRISMTRACE_API_KEY`,
 `PRISMTRACE_PROJECT_ID`, `PRISMTRACE_HOST`.
 
-Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `app.py` (one `analysis_run` session per track run), `src/tracks/run.py` (CLI track runner), `src/prism/smoke.py` (staging live-trace path)
+Tracing is currently wired at: `src/prism/tracing.py` (handler, session, computed_* metadata), `src/llm/agent.py` (`run_agent` — one chain root, callbacks on it), `src/core/orchestrator.py` (one session per Core question; router, each parallel sub-agent and the synthesizer are traced runs inside it), `src/core/router.py` and `src/core/synthesizer.py` (plain invokes — inherit the ambient session), `app.py` (`analysis_run` around every Core run and every manual track run), `src/core/run.py` and `src/tracks/run.py` (CLI runners), `src/prism/smoke.py` (staging live-trace path)
 
 **Standing rule.** Whenever you add or change an agent, chain, graph, tool,
 retriever, or any entry point that calls a model, wire it to PRISM before you

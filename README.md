@@ -11,6 +11,22 @@ worth, what reserves it needs, how much reinsurance is actually recovering, and 
 
 ## What it does
 
+Two modes. **Auto — bizmax Core**: ask one question; a router picks which specialist agents
+are needed (the Actuary always runs), they run **in parallel** with their own deterministic
+tools, and a synthesizer merges the reports into one executive summary with evidence charts.
+The MAGI-style panel shows the six agents lighting up as they work. **Manual**: run one track
+at a time with its own question box, plus a chart-heavy Overview with downloadable data sheets.
+
+Four illustrative businesses ship with the app, each with a distinct risk profile:
+
+| Business | Profile | Built-in story |
+|---|---|---|
+| **Velocity Fleet & Freight** | ~870 claims/yr, $8K median | 4% claims leakage, 680 overpaid claims, late reporting |
+| **Nexus Cloud Sec** | ~20 claims/yr, $41M cyber cat | Layer breached by the top claim; SCR ratio 118% (warning) |
+| **Aegis Healthcare** | ~150 claims/yr, 96-month tail | $125M chain-ladder IBNR, 33% litigation, +4%/yr social inflation |
+| **TerraFirma Civil** | ~75 claims/yr, dispersion 20 | 2022/2024 weather spikes, SCR ratio 110% (warning) |
+
+
 Upload the company's data — claims CSV/XLSX, policy and treaty tables, policy wordings as PDF —
 or import tables straight from Supabase, then ask any of six specialist tracks. Each track is a
 role prompt plus its **own deterministic tools** over the loaded data; the model decides which
@@ -76,6 +92,7 @@ reads the engine, the LLM call(s), and the `computed_*` figures as span metadata
 without the UI and check the pipeline:
 
 ```bash
+python -m src.core.run nexus "Is our reinsurance right for a cyber cat?"   # bizmax Core from the CLI
 python -m src.tracks.run all             # every track from the CLI, traced, with a grounding check
 python -m src.data.supabase_import claims policies   # pull tables into data/imported/
 python -m prismtrace.verify              # credential handshake + live-trace doctor

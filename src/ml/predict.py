@@ -34,11 +34,21 @@ def predict_severity(df: pd.DataFrame) -> np.ndarray:
     return model.predict(severity_matrix(df))
 
 
+ANOMALY_RATE = 0.05
+
+
 def flag_anomalies(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
-    """Model 2: (is_anomaly bool array, anomaly score — lower = more anomalous)."""
+    """Model 2: (is_anomaly bool array, anomaly score — lower = more anomalous).
+
+    The cut is the bottom ANOMALY_RATE of scores *within the loaded book*, not the
+    model's fixed training threshold: books with very different scales would otherwise
+    be flagged wholesale (a healthcare book scored against a fleet book's threshold).
+    """
     _, model = load_models()
     x = anomaly_matrix(df)
-    return model.predict(x) == -1, model.score_samples(x)
+    scores = model.score_samples(x)
+    cut = np.quantile(scores, ANOMALY_RATE) if len(scores) > 20 else -np.inf
+    return scores <= cut, scores
 
 
 class ClaimsIntelligence(TypedDict):

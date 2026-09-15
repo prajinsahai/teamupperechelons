@@ -16,6 +16,7 @@ from src.actuarial.frequency_severity import fit_frequency, fit_severity
 SEED = 42
 N_PATHS_FULL = 50_000
 N_PATHS_THIN = 20_000
+MAX_DRAWS = 4_000_000
 _CACHE: dict[tuple, dict[str, Any]] = {}  # same data + layer -> same simulation (deterministic anyway)
 
 
@@ -34,7 +35,9 @@ def simulate_aggregate(
     s = fit_severity(df)
     lam, mu, sigma = f["poisson_lambda"], s["lognormal_mu"], s["lognormal_sigma"]
     thin = s["n"] < 200
-    n = n_paths or (N_PATHS_THIN if thin else N_PATHS_FULL)
+    # bound total severity draws (~4M) so high-frequency books stay interactive:
+    # 50k paths for lam<=80, scaling down to ~4.6k paths at lam~870.
+    n = n_paths or min(N_PATHS_THIN if thin else N_PATHS_FULL, max(2_000, int(MAX_DRAWS / max(lam, 1.0))))
     rng = np.random.default_rng(seed)
 
     counts = rng.poisson(lam, size=n)
@@ -122,6 +125,30 @@ def retained_risk_cost(df: pd.DataFrame, retention: float, limit: float, cost_of
         "annual_cost_of_retained_risk": round(net["mean"] + capital_for_retained * cost_of_capital, 2),
         "expected_recovery": sim["expected_recovery"],
         "method": "expected retained loss + cost of capital on (VaR99.5 - mean) of retained distribution",
+    }
+
+
+def solvency_position(df: pd.DataFrame, capital_held: float, retention: float | None = None, limit: float | None = None) -> dict[str, Any]:
+    """Solvency II-style view. SCR = 99.5% VaR of annual net loss minus expected loss (the
+    unexpected-loss capital); own funds = capital held; SCR ratio = own funds / SCR.
+    Warning below 120%, breach below 100%. Plus a simple liquidity cover of the 95% VaR."""
+    sim = simulate_aggregate(df, retention, limit)
+    basis = sim["net_of_reinsurance"] if retention is not None else sim["gross"]
+    scr = max(basis["var_99_5"] - basis["mean"], 1.0)
+    ratio = capital_held / scr * 100
+    return {
+        "own_funds": capital_held,
+        "expected_annual_loss": basis["mean"],
+        "var_99_5": basis["var_99_5"],
+        "scr": round(scr, 2),
+        "scr_ratio_pct": round(ratio, 1),
+        "status": "breach" if ratio < 100 else "warning" if ratio < 120 else "adequate" if ratio < 200 else "strong",
+        "surplus_over_scr": round(capital_held - scr, 2),
+        "case_reserves_carried": round(float(df["reserve"].sum()), 2),
+        "liquidity_cover_of_var95": round(capital_held / max(basis["var_95"], 1.0), 2),
+        "basis": "net_of_reinsurance" if retention is not None else "gross",
+        "confidence_tier": sim["confidence_tier"],
+        "method": "SCR = VaR99.5 - mean of simulated annual loss; ratio = own funds / SCR; warn < 120%, breach < 100%",
     }
 
 

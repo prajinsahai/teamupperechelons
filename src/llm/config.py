@@ -22,16 +22,22 @@ def api_key_available() -> bool:
     return bool(os.environ.get("NVIDIA_API_KEY"))
 
 
-def make_llm(temperature: float = 0.1) -> BaseChatModel:
-    """NVIDIA NIM chat model. Imported lazily so the dashboard loads without the key."""
+def make_llm(temperature: float = 0.1, model: str | None = None, max_tokens: int | None = None) -> BaseChatModel:
+    """NVIDIA NIM chat model. Imported lazily so the dashboard loads without the key.
+
+    `model` / `max_tokens` overrides exist for the router (small, fast) and the
+    synthesizer (long output); everything else uses the defaults.
+    """
     from langchain_openai import ChatOpenAI
 
     return ChatOpenAI(
-        model=model_name(),
+        model=model or model_name(),
         api_key=os.environ["NVIDIA_API_KEY"],
         base_url=os.environ.get("NVIDIA_BASE_URL", DEFAULT_BASE_URL),
-        max_tokens=MAX_TOKENS,
+        max_tokens=max_tokens or MAX_TOKENS,
         temperature=temperature,
+        timeout=600,  # tool-heavy turns under 4-way concurrency exceeded 180s
+        max_retries=2,
     )
 
 

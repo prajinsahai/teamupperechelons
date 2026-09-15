@@ -1,0 +1,57 @@
+{
+  "slug": "velocity",
+  "name": "Velocity Fleet & Freight",
+  "tagline": "High frequency / low severity \u2014 a 2,400-truck logistics fleet.",
+  "focus": "Claims leakage, fraud detection, attritional loss control.",
+  "lines": {
+    "auto_liability": 0.4,
+    "physical_damage": 0.3,
+    "cargo": 0.2,
+    "workers_comp": 0.1
+  },
+  "years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "claims_per_year": 850,
+  "year_multipliers": {
+    "2018": 0.9,
+    "2019": 0.95,
+    "2020": 0.7,
+    "2021": 1.0,
+    "2022": 1.1,
+    "2023": 1.15,
+    "2024": 1.25
+  },
+  "sev_median": 6500,
+  "sev_sigma": 0.75,
+  "tail_months": 30,
+  "litigation_rate": 0.04,
+  "exposure_median": 180000,
+  "limits": [
+    1000000.0,
+    2000000.0
+  ],
+  "deductibles": [
+    5000,
+    10000,
+    25000
+  ],
+  "programme": {
+    "retention": 250000,
+    "limit": 2000000,
+    "capital_held": 2000000
+  },
+  "quirks": {
+    "fraud_rate": 0.03,
+    "duplicate_rate": 0.01
+  },
+  "seed": 7,
+  "claim_count": 6061,
+  "total_claim_amount": 67530475.0
+}

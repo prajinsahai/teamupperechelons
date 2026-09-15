@@ -1,0 +1,66 @@
+{
+  "slug": "nexus",
+  "name": "Nexus Cloud Sec",
+  "tagline": "Low frequency / high severity \u2014 a cloud security provider with 900 enterprise tenants.",
+  "focus": "Cyber catastrophe, systemic accumulation, reinsurance treaty design.",
+  "lines": {
+    "cyber_breach": 0.45,
+    "business_interruption": 0.25,
+    "tech_eo": 0.2,
+    "d_and_o": 0.1
+  },
+  "years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "claims_per_year": 20,
+  "year_multipliers": {
+    "2018": 0.6,
+    "2019": 0.8,
+    "2020": 1.0,
+    "2021": 1.3,
+    "2022": 1.0,
+    "2023": 1.2,
+    "2024": 1.6
+  },
+  "sev_median": 420000,
+  "sev_sigma": 1.35,
+  "tail_months": 36,
+  "litigation_rate": 0.12,
+  "exposure_median": 12000000,
+  "limits": [
+    10000000.0,
+    25000000.0,
+    50000000.0
+  ],
+  "deductibles": [
+    250000,
+    500000,
+    1000000
+  ],
+  "programme": {
+    "retention": 2000000,
+    "limit": 25000000,
+    "capital_held": 50000000
+  },
+  "quirks": {
+    "catastrophes": [
+      [
+        2021,
+        28000000
+      ],
+      [
+        2024,
+        41000000
+      ]
+    ]
+  },
+  "seed": 7,
+  "claim_count": 144,
+  "total_claim_amount": 233262568.0
+}
